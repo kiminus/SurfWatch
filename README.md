@@ -1,3 +1,12 @@
+# How to Run this project
+```bash
+cd client
+npx expo start
+```
+you can download the android app [here](https://expo.dev/accounts/kiminus/projects/client/builds/3861ecc3-46b3-4505-b4e9-c5c379fafe58)
+- click the three dots on the top right corner and select download build
+- an `.apk` file will be downloaded, install it on your android device
+
 # Routes
 
 ## Client - Server Communication
@@ -25,3 +34,5 @@
 ### User
 
 - **GET** `/user/{username}/` - Get user info
+
+
