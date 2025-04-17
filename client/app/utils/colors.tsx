@@ -8,4 +8,5 @@ export default {
   orange: '#A84C00',  // Orange for high crowd indicator
   lime: '#8DAD0F',    // Lime for medium-low crowd indicator
   blue: '#4A90E2',    // Blue for chart bars
+  red: '#FF3B30',     // Red for error messages
 };

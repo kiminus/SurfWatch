@@ -9,41 +9,41 @@ const forecastData = [
   {
     location: 'La Jolla Shores',
     crowds: [
-      { level: 'medium', color: colors.yellow },
-      { level: 'high', color: colors.orange },
-      { level: 'medium', color: colors.yellow },
-      { level: 'low', color: colors.green, large: true },
-      { level: 'low', color: colors.green }
+      { time: "08:00", level: 10 },
+      { time: "10:00", level: 15 },
+      { time: "12:00", level: 20 },
+      { time: "14:00", level: 18 },
+      { time: "16:00", level: 12 }
     ]
   },
   {
     location: 'Scripps',
     crowds: [
-      { level: 'low', color: colors.green, large: true },
-      { level: 'high', color: colors.orange },
-      { level: 'medium', color: colors.yellow },
-      { level: 'low', color: colors.green },
-      { level: 'low', color: colors.green }
+      { time: "08:00", level: 8 },
+      { time: "10:00", level: 12 },
+      { time: "12:00", level: 16 },
+      { time: "14:00", level: 14 },
+      { time: "16:00", level: 10 }
     ]
   },
   {
     location: 'Pipes',
     crowds: [
-      { level: 'low', color: colors.green },
-      { level: 'medium-low', color: colors.lime },
-      { level: 'medium', color: colors.yellow },
-      { level: 'low', color: colors.green },
-      { level: 'low', color: colors.green, large: true }
+      { time: "08:00", level: 5 },
+      { time: "10:00", level: 8 },
+      { time: "12:00", level: 12 },
+      { time: "14:00", level: 10 },
+      { time: "16:00", level: 6 }
     ]
   },
   {
     location: 'Pacific Beach',
     crowds: [
-      { level: 'medium-low', color: colors.lime },
-      { level: 'high', color: colors.orange },
-      { level: 'medium', color: colors.yellow },
-      { level: 'low', color: colors.green },
-      { level: 'low', color: colors.green }
+      { time: "08:00", level: 18 },
+      { time: "10:00", level: 22 },
+      { time: "12:00", level: 25 },
+      { time: "14:00", level: 20 },
+      { time: "16:00", level: 15 }
     ]
   }
 ];
@@ -52,6 +52,16 @@ const forecastData = [
 const days = ['FRI', 'SAT', 'SUN', 'MON', 'TUES'];
 
 export default function CrowdForecast() {
+  function getStyleFromCrowdLevel(level: number) {
+    if (level < 10) {
+      return [styles.crowdDot, { backgroundColor: colors.green }];
+    } else if (level < 20) {
+      return [styles.crowdDot, { backgroundColor: colors.yellow }];
+    } else {
+      return [styles.crowdDot, { backgroundColor: colors.red }];
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.forecastHeader}>
@@ -72,14 +82,7 @@ export default function CrowdForecast() {
             {item.crowds.map((crowd, crowdIndex) => (
               <View 
                 key={crowdIndex} 
-                style={[
-                  styles.crowdDot, 
-                  { 
-                    backgroundColor: crowd.color,
-                    width: crowd.large ? 32 : 24,
-                    height: crowd.large ? 32 : 24,
-                  }
-                ]} 
+                style={getStyleFromCrowdLevel(crowd.level)} 
               />
             ))}
           </View>
