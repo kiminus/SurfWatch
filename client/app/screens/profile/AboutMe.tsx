@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import colors from '../../utils/colors';
+import { User } from '@/app/models/user';
 
 // Favorite beaches data
 const favoriteBeaches = [
@@ -11,7 +12,7 @@ const favoriteBeaches = [
   { id: 3, name: 'PIPELINE, OAHU' },
 ];
 
-export default function AboutMe() {
+export default function AboutMe({user, setUser}: {user: User, setUser: (user: User) => void}) {
   return (
     <View style={styles.container}>
       <View style={styles.aboutMeItem}>

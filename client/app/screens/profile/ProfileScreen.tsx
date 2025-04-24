@@ -1,19 +1,32 @@
 // src/screens/ProfileScreen/index.js
-import React, { useState } from 'react';
+import React, { Dispatch, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProfileHeader from './ProfileHeader';
 import AboutMe from './AboutMe';
 import colors from '../../utils/colors';
+import {User} from '@/app/models/user';
 
 export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState('about');
+  const [user, setUser]: [User, Dispatch<User>] = useState({
+    user_id: 1,
+    user_name: 'John Doe',
+    email: 'john@gmail.com',
+    avatar_url: 'https://example.com/avatar.jpg',
+    display_name: 'John HAll',
+    streak_days: 5,
+  })
 
+  useEffect(() => {
+    // fetch user data from `/user/{userid}/`
+    fetch('/user/')
+  },[]);
   return (
     <View style={styles.container}>
       <View style={styles.streakContainer}>
         <Ionicons name="flame" size={24} color={colors.primary} />
-        <Text style={styles.streakText}>5 DAY SURFING STREAK</Text>
+        <Text style={styles.streakText}>{user.streak_days} DAY SURFING STREAK</Text>
       </View>
       
       <ProfileHeader />
@@ -32,18 +45,9 @@ export default function ProfileScreen() {
             About Me
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.profileTab, activeTab === 'buds' && styles.activeProfileTab]}
-          onPress={() => setActiveTab('buds')}
-        >
-          <Text style={[styles.profileTabText, activeTab === 'buds' && styles.activeProfileTabText]}>
-            Surf Buds
-          </Text>
-        </TouchableOpacity>
       </View>
       
-      {activeTab === 'about' && <AboutMe />}
-      {/* We're not implementing Surf Buds as per your request */}
+      {activeTab === 'about' && <AboutMe user = {user} setUser = {setUser}/>}
     </View>
   );
 }
