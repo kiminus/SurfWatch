@@ -21,5 +21,6 @@ async def app_init(app: FastAPI):
 
 app = FastAPI(lifespan=app_init)
 
-@app.get('/auth/login/')
-def auth_login()
+# region Auth
+
+# endregion

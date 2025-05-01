@@ -56,12 +56,23 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 - **GET** `/sites/rec` - Get recommended Surfing sites
 - **GET** `/sites/` - Get all Surfing sites
 
-- **GET** `/site/{id}/pop` - get heatmap data for a site
-- **GET** `/site/{id}/tide` - get tide data for a site
-- **GET** `/site/{id}` - get all data for a site
+- **GET** `/sites/{id}/pop` - get heatmap data for a site
+- **GET** `/sites/{id}/tide` - get tide data for a site
+- **GET** `/sites/{id}` - get all data for a site
 
 ### User
+> the user should only have access to their own data, so all endpoints should be prefixed with `/user/me/`
+> if user need to see other users data, we will need to implement a new endpoint for that
 
-- **GET** `/user/{username}/` - Get user info
-
-
+- **GET** `/users/me/` - Get current user info
+```json
+{
+    ...UserData
+}
+```
+- **GET** `/view/users/{id}` - Get other user view data by id
+```json
+{
+    ...UserData
+}
+```

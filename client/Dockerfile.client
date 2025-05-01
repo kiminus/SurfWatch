@@ -1,0 +1,53 @@
+# ./client/Dockerfile.client
+
+# --- Build Stage ---
+# Use an official Node.js LTS version as a parent image
+# Choose a version compatible with your Expo project requirements (e.g., 18, 20)
+FROM node:18-alpine as build
+
+# Set the working directory in the container
+WORKDIR /app/client
+
+# Install Expo CLI globally
+# Use --no-cache to reduce image size and prevent caching issues
+# Use --force if you encounter permission issues, though fixing permissions is better
+RUN npm install --global expo-cli --no-cache
+
+# Copy package.json and package-lock.json (or yarn.lock)
+# Copying these first leverages Docker layer caching
+COPY package*.json ./
+
+# Install project dependencies
+# Use --legacy-peer-deps if needed for compatibility issues
+# Clean npm cache afterwards to potentially reduce image size
+RUN npm install --legacy-peer-deps && npm cache clean --force
+
+# Copy the rest of the application code into the container
+COPY . .
+
+# Optional: If your build process involves compilation or bundling (e.g., web build)
+# RUN npx expo export:web # Or your specific build command
+
+# --- Development Stage ---
+# Use the build stage as a base
+FROM build as development
+
+# Set the working directory again (good practice)
+WORKDIR /app/client
+
+# Expose the ports needed for Expo development
+EXPOSE 8081  
+EXPOSE 19000 
+EXPOSE 19001 
+EXPOSE 19002 
+EXPOSE 19006 
+
+# Default command to start the Expo development server
+# Runs the bundler and makes the app available on the network
+# Using 0.0.0.0 allows access from outside the container
+# --tunnel creates a tunnel for easier device testing (requires Expo account login sometimes)
+CMD ["npx", "expo", "start", "--tunnel"]
+
+# Note: For production, you would typically have a different stage
+# using a minimal base image (like nginx or a distroless image)
+# and copy only the built assets from the build stage.
