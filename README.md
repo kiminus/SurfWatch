@@ -6,7 +6,17 @@
 npm install -g eas-cli
 cd client
 npm install
+cd ../server
+pip install -r requirements.txt
 ```
+
+### run the docker container
+```bash
+docker-compose up -d
+```
+- this will run the server on port 8000 and frontend on port 8081
+- the first time you run this, it will take a while (especially frontend compilation, which can take about 5 minutes), if nothing happens, try to type `w` in the terminal as it will trigger expo to show web 
+
 ### run the client
 ```bash
 cd client
