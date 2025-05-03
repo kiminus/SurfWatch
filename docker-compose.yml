@@ -2,6 +2,28 @@
 version: '3.8' 
 
 services:
+  # Database Service
+  db:
+    image: mysql:8.0
+    container_name: surfwatch-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rad123709a&*ahsdh
+      MYSQL_DATABASE: surfwatch
+      MYSQL_USER: surfwatch-server
+      MYSQL_PASSWORD: nmas@#12d
+    ports:
+      - "3307:3306" # Map host port 3306 to container port 3306
+    volumes:
+      - db_data:/var/lib/mysql # Persist database data
+    networks:
+      - surfwatch-net
+    restart: unless-stopped # Restart policy
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Service for the Python backend server
   server:
     build:
@@ -66,6 +88,6 @@ networks:
     driver: bridge # Default network driver
 
 # Define volumes (if needed, e.g., for a database)
-# volumes:
-#   postgres_data:
-
+volumes:
+  db_data:
+    driver: local

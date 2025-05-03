@@ -1,6 +1,38 @@
+> ![note]
+> the python model is the single source of truth, the client and server should be generated from the python model using `openapi-typescript` 
+
 # How to Run this project
 - you will need to install
 - [Node.js](https://nodejs.org/en/download/)
+
+
+# run the docker container
+```bash
+docker-compose up -d
+```
+- this will run the server on port 8000 and frontend on port 8081
+
+- after you see this message in the terminal
+
+```bash 
+surfwatch-server  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+Starting project at /app/client
+surfwatch-client  | Starting Metro Bundler
+```
+
+- wait a few seconds and then type `w` in the terminal to open the web app in your browser, a success message should look like this:
+  
+```bash
+surfwatch-client  | Web Bundled 7937ms node_modules/expo-router/entry.js (782 modules)
+surfwatch-client  | Web Bundled 2613ms node_modules/expo-router/entry.js (781 modules)
+surfwatch-client  |  LOG  [web] Logs will appear in the browser console
+```
+
+- the first time you run this, it will take a while (especially frontend compilation, which can take about 5 minutes), if nothing happens, try to type `w` in the terminal as it will trigger expo to show web 
+
+---
+
+# How to run the project without docker (no need to do this if docker can run)
 ### installation
 ```bash
 npm install -g eas-cli
@@ -9,13 +41,6 @@ npm install
 cd ../server
 pip install -r requirements.txt
 ```
-
-### run the docker container
-```bash
-docker-compose up -d
-```
-- this will run the server on port 8000 and frontend on port 8081
-- the first time you run this, it will take a while (especially frontend compilation, which can take about 5 minutes), if nothing happens, try to type `w` in the terminal as it will trigger expo to show web 
 
 ### run the client
 ```bash
@@ -26,6 +51,8 @@ npx expo start
 you can download the android app [here](https://expo.dev/accounts/kiminus/projects/client/builds/3861ecc3-46b3-4505-b4e9-c5c379fafe58)
 - click the three dots on the top right corner and select download build
 - an `.apk` file will be downloaded, install it on your android device
+
+---
 
 # Routes
 
@@ -42,20 +69,19 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 
 ### Auth
 
-- **POST** `/api/auth/login` - Login user
+- **POST** `/auth/login` - Login user
     ```json
     {
         "id": 1
     }
     ```
-- **POST** `/api/auth/register` - Register user
+- **POST** `/auth/register` - Register user
     ```json
     {
         "id": 1
     }
     ```
-- **POST** `/api/auth/logout` - Logout user
-- **GET** `/api/auth/validate` - Validate user token
+- **POST** `/auth/logout` - Logout user
 
 ### Shared
 
@@ -77,12 +103,12 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 - **GET** `/users/me/` - Get current user info
 ```json
 {
-    ...UserData
+    ...UserProfile
 }
 ```
 - **GET** `/view/users/{id}` - Get other user view data by id
 ```json
 {
-    ...UserData
+    ...UserDetail
 }
 ```

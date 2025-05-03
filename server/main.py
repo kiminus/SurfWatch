@@ -1,26 +1,20 @@
-import logging
-import os
+from utils import logger
 from contextlib import asynccontextmanager
-
-
 from dotenv import load_dotenv
 from fastapi import FastAPI
-
-
-
-logger = logging.getLogger('uvicorn.error')
-logger.setLevel(logging.DEBUG)
+from passlib.context import CryptContext
+import os
 
 @asynccontextmanager
 async def app_init(app: FastAPI):
-    load_dotenv()
-    global PID, EMAIL
-    PID = os.getenv("PID")
-    EMAIL = os.getenv("EMAIL")
     yield
 
 app = FastAPI(lifespan=app_init)
 
+load_dotenv()
+logger = logger.create_logger("Server Main")
+SECRET = os.getenv("SECRET_KEY")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # region Auth
 
 # endregion
