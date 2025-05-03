@@ -58,15 +58,6 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 
 ## Client - Server Communication
 
-> [!NOTE]  
->   if there is an error, we will always return json in format:
->   ```json
->   {
->       "error": "error_message"
->       "detail": "error_detail"
->   }
->   ```
-
 ### Auth
 
 - **POST** `/auth/login` - Login user

@@ -37,3 +37,29 @@ def create_logger(name,
     if not any(isinstance(h, logging.StreamHandler) and h.stream == stream for h in logger.handlers):
             logger.addHandler(handler)
     return logger
+
+default_logger = create_logger("SurfWatch", level=DEFAULT_LOG_LEVEL)
+
+def info(message):
+    """
+    Logs an info message using the default logger.
+    """
+    default_logger.info(message)
+
+def debug(message):
+    """
+    Logs a debug message using the default logger.
+    """
+    default_logger.debug(message)
+
+def warning(message):
+    """
+    Logs a warning message using the default logger.
+    """
+    default_logger.warning(message)
+
+def error(message):
+    """
+    Logs an error message using the default logger.
+    """
+    default_logger.error(message)
