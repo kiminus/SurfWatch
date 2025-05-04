@@ -1,7 +1,10 @@
-{
+[
     {
-        "id": 1,
-        "name": "John Doe",
-        "email": "
+        "user_id": 1,
+        "email": "test@example.com",
+        "display_name": "John test",
+        "streak_days": 5,
+        "avatar_url": "https://picsum.photos/200",
+        "show_streak": true
     }
-}
+]

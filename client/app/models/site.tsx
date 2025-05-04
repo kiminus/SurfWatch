@@ -1,27 +1,28 @@
-// TypeScript interfaces based on site.py Pydantic models
-
 /**
- * Represents crowdness data at a specific time.
- * Corresponds to the Python Crowdness model.
+ * Corresponds to Crowdness in Python
  */
 export interface Crowdness {
-  time: string; // UTC time in ISO format
-  crowdness: number; // number of people in the site at that time
+  /** UTC time in ISO format */
+  time: string;
+  /** number of people in the site at that time */
+  crowdness: number;
 }
 
 /**
- * Represents wave quality data at a specific time.
- * Corresponds to the Python WaveQuality model.
+ * Corresponds to WaveQuality in Python
  */
 export interface WaveQuality {
-  time: string; // UTC time in ISO format
-  quality: number; // wave quality rating (0-10)
-  tide: 'low' | 'mid' | 'high'; // tide level
+  /** UTC time in ISO format */
+  time: string;
+  /** wave quality rating (0-10) */
+  quality: number;
+  /** tide level (low, mid, high) */
+  tide: string; // Consider using an enum: 'low' | 'mid' | 'high'
 }
 
 /**
- * Represents very basic site information.
- * Corresponds to the Python SiteShort model.
+ * very basic site info
+ * Corresponds to SiteShort in Python
  */
 export interface SiteShort {
   site_id: number;
@@ -30,23 +31,23 @@ export interface SiteShort {
 }
 
 /**
- * Represents detailed site information.
- * Extends SiteShort.
- * Corresponds to the Python SiteDetails model.
+ * detailed site info
+ * Corresponds to SiteDetails in Python
+ * Extends SiteShort
  */
 export interface SiteDetails extends SiteShort {
   site_desc: string;
   site_url: string;
-  site_banner_url?: string | null; // Optional field
-  predict_daily_crowdness?: Crowdness[] | null; // Optional list of Crowdness objects
+  site_banner_url?: string | null; // Optional field with default None maps to optional or null
+  predict_daily_crowdness?: Crowdness[] | null; // Optional list maps to array or null
 }
 
 /**
- * Represents full site information including hourly predictions.
- * Extends SiteDetails.
- * Corresponds to the Python Site model.
+ * full site info
+ * Corresponds to Site in Python
+ * Extends SiteDetails
  */
 export interface Site extends SiteDetails {
-  predict_hourly_crowdness?: Crowdness[] | null; // Optional list of Crowdness objects
-  predict_hourly_wave_quality?: WaveQuality[] | null; // Optional list of WaveQuality objects
+  predict_hourly_crowdness?: Crowdness[] | null; // Optional list maps to array or null
+  predict_hourly_wave_quality?: WaveQuality[] | null; // Optional list maps to array or null
 }

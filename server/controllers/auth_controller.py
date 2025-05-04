@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.models.user import UserAuth, UserProfile
 from models.user import UserRegister, UserLogin
-from server.utils import logger
+from utils import logger
 import uuid
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -51,7 +51,6 @@ async def create_user(db: AsyncSession, register: UserRegister) -> UserProfile:
         username=register.username,
         display_name=register.displayName,
         email=register.email,
-        display_name=register.displayName,
     )
     db.add(new_user)
     await db.commit()

@@ -1,10 +1,10 @@
 from typing import Dict
 
 from sqlalchemy import select
-from server.database.database import create_db_and_tables, get_db
-from server.database.models.user import UserProfile
-from server.models.user import UserRegister, UserLogin
-import server.controllers.auth_controller as auth
+from database.database import create_db_and_tables, get_db
+from database.models.user import UserProfile
+from models.user import UserRegister, UserLogin
+import controllers.auth_controller as auth
 from utils import logger
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv

@@ -1,6 +1,6 @@
-from server.database.models.user import Base
-from sqlalchemy import DateTime, Integer, String, Text
-from sqlalchemy.ext.declarative import DeclarativeBase, Mapped, mapped_column
+from database.models.user import Base
+from sqlalchemy import DateTime, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Site(Base):
@@ -14,8 +14,10 @@ class Site(Base):
     site_url: Mapped[str] = mapped_column(String(255), nullable=True)
     site_banner_url: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    daily_crowdness: Mapped[list["CrowdnessData"]] = mapped_column(nullable=True)  # List of 24 CrowdnessData objects
-    weekly_crowdness: Mapped[list["CrowdnessData"]] = mapped_column(nullable=True)  # List of 7 CrowdnessData objects
+    from sqlalchemy.orm import relationship
+
+    daily_crowdness: Mapped[list["CrowdnessData"]] = relationship("CrowdnessData", back_populates="site", lazy="joined")  # List of 24 CrowdnessData objects
+    weekly_crowdness: Mapped[list["CrowdnessData"]] = relationship("CrowdnessData", back_populates="site", lazy="joined")  # List of 7 CrowdnessData objects
 
 
 class CrowdnessData(Base):
@@ -28,6 +30,8 @@ class CrowdnessData(Base):
 class RawCrowdnessReading(Base):
     """SQLAlchemy RawCrowdnessReading model corresponding to the database table."""
     __tablename__ = "raw_crowdness_readings"
-    time: Mapped[str] = mapped_column(DateTime(timezone=True), primary_key=True, index=True)
-    site_id: Mapped[int] = mapped_column(Integer, nullable=False, foreign_key="sites.site_id")  
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    time: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False)
     crowdness: Mapped[int] = mapped_column(Integer, nullable=False)

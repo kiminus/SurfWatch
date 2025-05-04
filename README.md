@@ -3,10 +3,13 @@
 
 # How to Run this project
 - you will need to install
-- [Node.js](https://nodejs.org/en/download/)
+- [Node.js](https://nodejs.org/en/download/) , version 22
 
 
 # run the docker container
+> ![note]
+> you need to uncomment the `client` section when deploy to production, so all client, server and database will run in the same container
+> for development, you can run the client and server separately
 ```bash
 docker-compose up -d
 ```
@@ -32,15 +35,7 @@ surfwatch-client  |  LOG  [web] Logs will appear in the browser console
 
 ---
 
-# How to run the project without docker (no need to do this if docker can run)
-### installation
-```bash
-npm install -g eas-cli
-cd client
-npm install
-cd ../server
-pip install -r requirements.txt
-```
+# How to run the project without docker (for development)
 
 ### run the client
 ```bash
@@ -52,6 +47,16 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 - click the three dots on the top right corner and select download build
 - an `.apk` file will be downloaded, install it on your android device
 
+
+### run the server and database
+
+- make sure you dont install the `client` in the docker container, run those seperately 
+- you will need to install [python](https://www.python.org/downloads/) version 3.10 or higher
+- you need to install [mysql](https://dev.mysql.com/downloads/installer/) and create a database called `surfwatch`
+  
+```bash
+docker-compose up -d
+```
 ---
 
 # Routes

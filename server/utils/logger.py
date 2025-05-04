@@ -3,7 +3,7 @@ import logging
 import sys
 
 # Default formatter
-DEFAULT_LOG_FORMAT = '(%(name)s)[%(asctime)s]%(levelname)s\t%(message)s'
+DEFAULT_LOG_FORMAT = '(%(name)s)[%(asctime)s] %(levelname)s\t\t%(message)s'
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_LEVEL = logging.INFO
 

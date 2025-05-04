@@ -1,52 +1,68 @@
-// TypeScript interfaces based on user.py Pydantic models
+// Generated from user.py
 
 /**
- * Represents user authentication data (typically not sent to frontend).
- * Corresponds to the Python UserAuth model.
- * Note: Be cautious about exposing hashed_password.
+ * Corresponds to UserAuth in Python
  */
 export interface UserAuth {
   user_id: number;
   username: string;
-  hashed_password: string; // Sensitive data, handle with care
+  hashed_password: string;
 }
 
 /**
- * Represents user settings.
- * Corresponds to the Python UserSettings model.
+ * this is the form used to login
+ * Corresponds to UserLogin in Python
+ */
+export interface UserLogin {
+  username: string;
+  password: string;
+}
+
+/**
+ * this is the form used to register
+ * Corresponds to UserRegister in Python
+ */
+export interface UserRegister {
+  username: string;
+  email: string;
+  password: string;
+  displayName?: string | null; // Optional field with default None maps to optional or null
+}
+
+/**
+ * Corresponds to UserSettings in Python
  */
 export interface UserSettings {
   user_id: number;
-  show_streak?: boolean; // Defaults to true in Python, optional here
+  show_streak?: boolean; // Optional field with default True
 }
 
 /**
- * Represents user preferences, specifically preferred sites.
- * Corresponds to the Python UserPreference model.
+ * Corresponds to UserPreference in Python
  */
 export interface UserPreference {
   user_id: number;
-  preferred_sites?: number[] | null; // Optional list of site IDs
+  preferred_sites?: number[] | null; // Optional list maps to array or null
 }
 
 /**
- * Represents the user profile information visible publicly.
- * Corresponds to the Python UserViewProfile model.
+ * this profile is displayed in public
+ * Corresponds to UserViewProfile in Python
  */
 export interface UserViewProfile {
   user_id: number;
   displayName: string;
-  streak_days?: number; // Defaults to 0 in Python, optional here
-  avatar_url?: string | null; // Optional field
+  streak_days?: number; // Optional field with default 0
+  avatar_url?: string | null; // Optional field with default None maps to optional or null
 }
 
 /**
- * Represents the full user profile information, including private details.
- * Extends UserViewProfile.
- * Corresponds to the Python UserProfile model.
+ * this profile is displayed in private
+ * Corresponds to UserProfile in Python
+ * Extends UserViewProfile
  */
 export interface UserProfile extends UserViewProfile {
-  email: string; // Sensitive data, handle with care
-  preferences?: UserPreference | null; // Optional nested object
-  settings?: UserSettings | null; // Optional nested object
+  email: string;
+  preferences?: UserPreference | null; // Optional field with default None maps to optional or null
+  settings?: UserSettings | null; // Optional field with default None maps to optional or null
 }
