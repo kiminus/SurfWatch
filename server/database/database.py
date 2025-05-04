@@ -60,28 +60,35 @@ async def load_initial_data():
         # Load initial data for users
         with open("store/reserved_users.json", "r") as file:
             users_data = json.load(file)
+            logger.debug(f"Loaded users data: {users_data}")
             for user in users_data:
+                logger.debug(f"Adding user: {user}")
                 session.add(UserProfile(**user))
 
         # Load initial data for sites
         with open("store/reserved_sites.json", "r") as file:
             sites_data = json.load(file)
+            logger.debug(f"Loaded sites data: {sites_data}")
             for site in sites_data:
+                logger.debug(f"Adding site: {site}")
                 session.add(Site(**site))
 
         # Load initial data for user_auths
         with open("store/reserved_user_auths.json", "r") as file:
             user_auths_data = json.load(file)
+            logger.debug(f"Loaded user_auths data: {user_auths_data}")
             for user_auth in user_auths_data:
+                logger.debug(f"Adding user_auth: {user_auth}")
                 session.add(UserAuth(**user_auth))
 
         await session.commit()
+        logger.info("Initial data loaded successfully.")
 
-async def main():
+async def db_init():
     await create_db_and_tables()
     await load_initial_data()
 
 # Run the main function
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(db_init())
 

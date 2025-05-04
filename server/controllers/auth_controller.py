@@ -31,8 +31,9 @@ async def get_user_by_username(db: AsyncSession, username: str) -> UserProfile:
     """
     Get a user by username from the database. Return `None` if not found. `username` is unique.
     """
-    result = await db.execute(select(UserProfile).filter(UserProfile.username == username))
-    return result.scalars().first()
+    user_id = await db.execute(select(UserAuth).filter(UserAuth.username == username))
+    user_id = user_id.scalars().first()
+    return get_user(db, user_id.user_id) if user_id else None
 
 async def get_user_by_email(db: AsyncSession, email: str) -> UserProfile:
     """
@@ -48,7 +49,6 @@ async def create_user(db: AsyncSession, register: UserRegister) -> UserProfile:
     """
     hashed_password = hash_password(register.password)
     new_user = UserProfile(
-        username=register.username,
         display_name=register.displayName,
         email=register.email,
     )

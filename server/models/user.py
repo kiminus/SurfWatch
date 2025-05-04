@@ -19,24 +19,19 @@ class UserRegister(pydantic.BaseModel):
     password: str
     displayName: str = None
 
-class UserSettings(pydantic.BaseModel):
-    user_id: int
-    show_streak: bool = True
-
-class UserPreference(pydantic.BaseModel):
-    user_id: int
-    preferred_sites: Optional[list[int]] = None
-
 
 class UserViewProfile(pydantic.BaseModel):
+    model_config = {
+        'orm_mode': True,
+        'allow_population_by_field_name': True,
+    }
     '''this profile is displayed in public'''
     user_id: int
     displayName: str
     streak_days: int = 0
-    avatar_url: str = None
+    avatar_url: Optional[str] = None
 
 class UserProfile(UserViewProfile):
     '''this profile is displayed in private'''
     email: str
-    preferences: UserPreference = None
-    settings: UserSettings = None
+    show_streak: bool = True

@@ -5,21 +5,19 @@ import axios from 'axios';
 // Use http://10.0.2.2:8000 for Android Emulator accessing local backend
 // Use http://localhost:8000 for iOS Simulator accessing local backend
 // Use your machine's network IP for physical devices accessing local backend
-const API_BASE_URL = 'http://localhost:8000'; // ADJUST THIS
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+const ApiClient = axios.create({
+  baseURL: 'http://localhost:8000',
   withCredentials: true, // Essential for sending session cookies
   timeout: 10000,
 });
 
-// Optional: Add basic logging or error handling interceptors
-apiClient.interceptors.response.use(
+ApiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Call Error:', error.response?.status, error.response?.data);
+    console.error('API Call Error:', error);
     return Promise.reject(error);
   }
 );
 
-export default apiClient;
+export default ApiClient;

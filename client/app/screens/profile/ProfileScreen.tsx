@@ -9,11 +9,11 @@ import {
   ScrollView,
   Switch,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useAuth, UserProfile } from '../../context/AuthContext';
-import apiClient from '../../utils/apiClient';
+import { useAuth, UserProfile } from '../../services/AuthService';
+import ApiClient from '../../services/ApiClient';
 import colors from '../../utils/colors';
 
 interface ProfileScreenProps {
@@ -22,7 +22,9 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
   // State for settings
-  const [showStreak, setShowStreak] = useState<boolean>(user?.show_streak || false);
+  const [showStreak, setShowStreak] = useState<boolean>(
+    user?.show_streak || false
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { logout } = useAuth();
 
@@ -43,7 +45,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
   // Toggle streak visibility setting
   const handleToggleStreak = async (value: boolean) => {
     setShowStreak(value);
-    
+
     // In a real app, update the setting on the server
     try {
       // await apiClient.patch('/users/settings', { show_streak: value });
@@ -71,14 +73,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
           {user.avatar_url ? (
-            <Image 
-              source={{ uri: user.avatar_url }} 
-              style={styles.avatar} 
-            />
+            <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
           ) : (
             <View style={styles.defaultAvatar}>
               <Text style={styles.avatarInitial}>
-                {user.display_name ? user.display_name[0].toUpperCase() : user.username[0].toUpperCase()}
+                {user.display_name
+                  ? user.display_name[0].toUpperCase()
+                  : user.username[0].toUpperCase()}
               </Text>
             </View>
           )}
@@ -86,13 +87,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
             <Ionicons name="camera" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
-        
+
         <Text style={styles.displayName}>
           {user.display_name || user.username}
         </Text>
-        
+
         <Text style={styles.username}>@{user.username}</Text>
-        
+
         {user.streak_days > 0 && (
           <View style={styles.streakContainer}>
             <Ionicons name="flame" size={16} color="#FF6B00" />
@@ -124,40 +125,64 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
       {/* Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
-        
+
         <View style={styles.settingItem}>
           <View style={styles.settingLabelContainer}>
-            <Ionicons name="flame-outline" size={22} color={colors.dark} style={styles.settingIcon} />
+            <Ionicons
+              name="flame-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.settingIcon}
+            />
             <Text style={styles.settingLabel}>Show streak on profile</Text>
           </View>
           <Switch
             value={showStreak}
             onValueChange={handleToggleStreak}
-            trackColor={{ false: colors.lightGray, true: `${colors.primary}80` }}
+            trackColor={{
+              false: colors.lightGray,
+              true: `${colors.primary}80`,
+            }}
             thumbColor={showStreak ? colors.primary : '#f4f3f4'}
           />
         </View>
 
         <View style={styles.settingItem}>
           <View style={styles.settingLabelContainer}>
-            <Ionicons name="notifications-outline" size={22} color={colors.dark} style={styles.settingIcon} />
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.settingIcon}
+            />
             <Text style={styles.settingLabel}>Push notifications</Text>
           </View>
           <Switch
             value={true}
-            trackColor={{ false: colors.lightGray, true: `${colors.primary}80` }}
+            trackColor={{
+              false: colors.lightGray,
+              true: `${colors.primary}80`,
+            }}
             thumbColor={true ? colors.primary : '#f4f3f4'}
           />
         </View>
 
         <View style={styles.settingItem}>
           <View style={styles.settingLabelContainer}>
-            <Ionicons name="location-outline" size={22} color={colors.dark} style={styles.settingIcon} />
+            <Ionicons
+              name="location-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.settingIcon}
+            />
             <Text style={styles.settingLabel}>Location services</Text>
           </View>
           <Switch
             value={true}
-            trackColor={{ false: colors.lightGray, true: `${colors.primary}80` }}
+            trackColor={{
+              false: colors.lightGray,
+              true: `${colors.primary}80`,
+            }}
             thumbColor={true ? colors.primary : '#f4f3f4'}
           />
         </View>
@@ -166,55 +191,100 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
       {/* Account Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
-        
+
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemContent}>
-            <Ionicons name="person-outline" size={22} color={colors.dark} style={styles.menuIcon} />
+            <Ionicons
+              name="person-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.menuIcon}
+            />
             <Text style={styles.menuLabel}>Edit Profile</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.mediumGray} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.mediumGray}
+          />
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemContent}>
-            <Ionicons name="bookmark-outline" size={22} color={colors.dark} style={styles.menuIcon} />
+            <Ionicons
+              name="bookmark-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.menuIcon}
+            />
             <Text style={styles.menuLabel}>Saved Locations</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.mediumGray} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.mediumGray}
+          />
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemContent}>
-            <Ionicons name="card-outline" size={22} color={colors.dark} style={styles.menuIcon} />
+            <Ionicons
+              name="card-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.menuIcon}
+            />
             <Text style={styles.menuLabel}>Subscription</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.mediumGray} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.mediumGray}
+          />
         </TouchableOpacity>
       </View>
 
       {/* Support Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
-        
+
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemContent}>
-            <Ionicons name="help-circle-outline" size={22} color={colors.dark} style={styles.menuIcon} />
+            <Ionicons
+              name="help-circle-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.menuIcon}
+            />
             <Text style={styles.menuLabel}>Help Center</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.mediumGray} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.mediumGray}
+          />
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemContent}>
-            <Ionicons name="mail-outline" size={22} color={colors.dark} style={styles.menuIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={22}
+              color={colors.dark}
+              style={styles.menuIcon}
+            />
             <Text style={styles.menuLabel}>Contact Us</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.mediumGray} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={colors.mediumGray}
+          />
         </TouchableOpacity>
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.logoutButton}
         onPress={handleLogout}
         disabled={isLoading}

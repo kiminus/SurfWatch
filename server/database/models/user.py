@@ -13,19 +13,18 @@ class UserProfile(Base):
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=True) # Allow null email initially
-    display_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    display_name: Mapped[str] = mapped_column(String(50))
     streak_days: Mapped[int] = mapped_column(Integer, default=0)
     avatar_url: Mapped[str] = mapped_column(String(255), nullable=True)
 
     show_streak: Mapped[bool] = mapped_column(Boolean, default=True)
-
 
 class UserAuth(Base):
     """SQLAlchemy UserAuth model corresponding to the database table."""
     __tablename__ = "user_auths"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)

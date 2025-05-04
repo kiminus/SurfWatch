@@ -1,16 +1,14 @@
 from typing import Dict
 
-from sqlalchemy import select
-from database.database import create_db_and_tables, get_db
+from database.database import db_init, get_db
 from database.models.user import UserProfile
-from models.user import UserRegister, UserLogin
+from models.user import UserRegister, UserLogin, UserProfile as PydanticUserProfile
 import controllers.auth_controller as auth
 from utils import logger
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
 
@@ -21,7 +19,7 @@ async def app_init(app: FastAPI):
     # Code to run on startup
     logger.info("Application startup...")
     logger.info("Creating database tables if they don't exist...")
-    await create_db_and_tables()
+    await db_init()
     logger.info("Database tables checked/created.")
     yield
     # Code to run on shutdown (optional)
@@ -50,6 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # region Auth
+@app.get('/users/me', response_model=PydanticUserProfile)
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Dependency to get the current user from the request.

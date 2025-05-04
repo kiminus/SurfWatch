@@ -1,17 +1,16 @@
 // screens/dashboard/DashboardScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
   RefreshControl,
-  Image,
-  ActivityIndicator 
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import apiClient from '../../utils/apiClient';
+import ApiClient from '../../services/ApiClient';
 import colors from '../../utils/colors';
 import { SiteShort } from '../../models/site'; // Adjust the import path as necessary
 
@@ -25,17 +24,21 @@ const DashboardScreen: React.FC = () => {
   const fetchRecommendedSites = async () => {
     try {
       setError(null);
-      const response = await apiClient.get<SiteShort[]>('/sites/recommended');
+      const response = await ApiClient.get<SiteShort[]>('/sites/recommended');
       setRecommendedSites(response.data);
     } catch (err) {
       console.error('Error fetching recommended sites:', err);
       setError('Unable to load recommendations. Please try again.');
-      
+
       // For demo purposes, use sample data if API fails
       setRecommendedSites([
-        { site_id: 1, site_name: 'La Jolla Shores', site_name_short: 'La Jolla' },
-        { site_id: 2, site_name: 'Black\'s Beach', site_name_short: 'Black\'s' },
-        { site_id: 3, site_name: 'Swami\'s Beach', site_name_short: 'Swami\'s' },
+        {
+          site_id: 1,
+          site_name: 'La Jolla Shores',
+          site_name_short: 'La Jolla',
+        },
+        { site_id: 2, site_name: "Black's Beach", site_name_short: "Black's" },
+        { site_id: 3, site_name: "Swami's Beach", site_name_short: "Swami's" },
         { site_id: 4, site_name: 'Cardiff Reef', site_name_short: 'Cardiff' },
       ]);
     } finally {
@@ -75,17 +78,22 @@ const DashboardScreen: React.FC = () => {
   const renderSiteCard = ({ item }: { item: SiteShort }) => {
     // For demo, generate random crowd level between 1-10
     const crowdLevel = Math.floor(Math.random() * 10) + 1;
-    
+
     return (
       <TouchableOpacity style={styles.siteCard}>
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <Text style={styles.siteName}>{item.site_name}</Text>
-            <View style={[styles.crowdIndicator, { backgroundColor: getCrowdColor(crowdLevel) }]}>
+            <View
+              style={[
+                styles.crowdIndicator,
+                { backgroundColor: getCrowdColor(crowdLevel) },
+              ]}
+            >
               <Text style={styles.crowdText}>{getCrowdText(crowdLevel)}</Text>
             </View>
           </View>
-          
+
           <View style={styles.cardDetails}>
             <View style={styles.detailItem}>
               <Ionicons name="water-outline" size={18} color={colors.blue} />
@@ -115,15 +123,17 @@ const DashboardScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.welcomeSection}>
         <Text style={styles.welcomeTitle}>Today's Surf Report</Text>
-        <Text style={styles.welcomeSubtitle}>Check out the best spots to catch waves today</Text>
+        <Text style={styles.welcomeSubtitle}>
+          Check out the best spots to catch waves today
+        </Text>
       </View>
-      
+
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-      
+
       <View style={styles.listContainer}>
         <Text style={styles.sectionTitle}>Recommended Spots</Text>
         <FlatList

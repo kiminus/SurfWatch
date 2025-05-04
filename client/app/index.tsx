@@ -12,8 +12,13 @@ import MapScreen from './screens/Map/MapScreen';
 import ProfileScreen from './screens/profile/ProfileScreen';
 
 // Import Auth Components
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { LoadingScreen, LoginScreen, RegisterScreen } from './screens/auth/AuthScreens';
+import {
+  LoadingScreen,
+  LoginScreen,
+  RegisterScreen,
+} from './screens/auth/AuthScreens';
+import { UserProfile } from './models/user';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Define Navigation Param Lists
 type AuthStackParamList = {
@@ -33,7 +38,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 // Main App Layout Component
 const MainAppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('home');
-  const { user } = useAuth();
+  const [user, setUser] = useState<UserProfile>();
 
   // Render the active screen based on the selected tab
   const renderScreen = () => {
@@ -53,9 +58,7 @@ const MainAppLayout: React.FC = () => {
   return (
     <>
       <Header />
-      <View style={styles.screenContainer}>
-        {renderScreen()}
-      </View>
+      <View style={styles.screenContainer}>{renderScreen()}</View>
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </>
   );
@@ -88,14 +91,12 @@ const RootNavigator: React.FC = () => {
 // Main App Component
 export default function App() {
   return (
-    <AuthProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </SafeAreaView>
-    </AuthProvider>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </SafeAreaView>
   );
 }
 
@@ -107,5 +108,5 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
-  }
+  },
 });

@@ -1,24 +1,25 @@
-// screens/auth/AuthScreens.tsx
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  KeyboardAvoidingView, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
   Platform,
   Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useAuth } from '../../context/AuthContext';
+import AuthService from '../../services/AuthService';
 import colors from '../../utils/colors';
+import Header from '@/app/components/Header';
 
 // Types for navigation props
 type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
+  Dashboard: undefined;
 };
 
 type LoginScreenProps = {
@@ -29,22 +30,11 @@ type RegisterScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'Register'>;
 };
 
-// Loading Screen Component
-export const LoadingScreen: React.FC = () => {
-  return (
-    <View style={styles.centered}>
-      <ActivityIndicator size="large" color={colors.primary} />
-      <Text style={styles.loadingText}>Loading SurfWatch...</Text>
-    </View>
-  );
-};
-
 // Login Screen Component
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -54,26 +44,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     try {
-      await login(username, password);
-      // No need to navigate, AuthContext will trigger app stack display
+      const data = { username, password };
+      await AuthService.login(data);
+      navigation.navigate('Dashboard');
     } catch (error) {
       Alert.alert('Login Failed', 'Invalid username or password');
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>SurfWatch</Text>
-        <Text style={styles.tagline}>Track the waves. Catch the perfect ride.</Text>
-      </View>
+      <Header />
 
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Login</Text>
+      </View>
       <View style={styles.formContainer}>
         <TextInput
           style={styles.input}
@@ -82,7 +72,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onChangeText={setUsername}
           autoCapitalize="none"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -91,7 +81,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           secureTextEntry
         />
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={handleLogin}
           disabled={isLoading}
@@ -103,14 +93,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.linkButton}
           onPress={() => navigation.navigate('Register')}
           disabled={isLoading}
         >
-          <Text style={styles.linkText}>
-            Don't have an account? Sign up
-          </Text>
+          <Text style={styles.linkText}>Don't have an account? Sign up</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -118,13 +106,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 };
 
 // Register Screen Component
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({
+  navigation,
+}) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
 
   const handleRegister = async () => {
     // Basic validation
@@ -140,13 +129,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
     setIsLoading(true);
     try {
-      await register(username, password, email || null);
+      await AuthService.register({ username, password, email });
       Alert.alert('Success', 'Registration successful! Please log in.', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') }
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
     } catch (error) {
-      const errorMessage = 
-        (error as any)?.response?.data?.detail || 'Registration failed. Please try again.';
+      const errorMessage =
+        (error as any)?.response?.data?.detail ||
+        'Registration failed. Please try again.';
       Alert.alert('Registration Error', errorMessage);
     } finally {
       setIsLoading(false);
@@ -154,16 +144,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
+      <Header />
 
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>Create Account</Text>
@@ -178,7 +163,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           onChangeText={setUsername}
           autoCapitalize="none"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Email (optional)"
@@ -187,7 +172,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -195,7 +180,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           onChangeText={setPassword}
           secureTextEntry
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
@@ -204,7 +189,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           secureTextEntry
         />
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={handleRegister}
           disabled={isLoading}
@@ -216,17 +201,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.linkButton}
           onPress={() => navigation.navigate('Login')}
           disabled={isLoading}
         >
-          <Text style={styles.linkText}>
-            Already have an account? Log in
-          </Text>
+          <Text style={styles.linkText}>Already have an account? Log in</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+  );
+};
+
+// Loading Screen Component
+export const LoadingScreen: React.FC = () => {
+  return (
+    <View style={styles.centered}>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={styles.loadingText}>Loading...</Text>
+    </View>
   );
 };
 
@@ -279,6 +272,9 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
   input: {
     backgroundColor: '#f5f5f5',
@@ -286,6 +282,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     fontSize: 16,
+    width: '100%',
   },
   button: {
     backgroundColor: colors.primary,

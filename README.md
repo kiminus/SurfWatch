@@ -52,7 +52,6 @@ you can download the android app [here](https://expo.dev/accounts/kiminus/projec
 
 - make sure you dont install the `client` in the docker container, run those seperately 
 - you will need to install [python](https://www.python.org/downloads/) version 3.10 or higher
-- you need to install [mysql](https://dev.mysql.com/downloads/installer/) and create a database called `surfwatch`
   
 ```bash
 docker-compose up -d
@@ -66,17 +65,8 @@ docker-compose up -d
 ### Auth
 
 - **POST** `/auth/login` - Login user
-    ```json
-    {
-        "id": 1
-    }
-    ```
+    
 - **POST** `/auth/register` - Register user
-    ```json
-    {
-        "id": 1
-    }
-    ```
 - **POST** `/auth/logout` - Logout user
 
 ### Shared
@@ -97,14 +87,5 @@ docker-compose up -d
 > if user need to see other users data, we will need to implement a new endpoint for that
 
 - **GET** `/users/me/` - Get current user info
-```json
-{
-    ...UserProfile
-}
-```
 - **GET** `/view/users/{id}` - Get other user view data by id
-```json
-{
-    ...UserDetail
-}
-```
+
