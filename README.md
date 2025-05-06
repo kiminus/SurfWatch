@@ -65,7 +65,6 @@ docker-compose up -d
 ### Auth
 
 - **POST** `/auth/login` - Login user
-    
 - **POST** `/auth/register` - Register user
 - **POST** `/auth/logout` - Logout user
 

@@ -2,7 +2,7 @@ from typing import Dict
 
 from database.database import db_init, get_db
 from database.models.user import UserProfile
-from models.user import UserRegister, UserLogin, UserProfile as PydanticUserProfile
+from models.user import UserAuth, UserRegister, UserLogin, UserProfile as PydanticUserProfile
 import controllers.auth_controller as auth
 from utils import logger
 from contextlib import asynccontextmanager
@@ -49,7 +49,7 @@ app.add_middleware(
 )
 # region Auth
 @app.get('/users/me', response_model=PydanticUserProfile)
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> PydanticUserProfile:
     """
     Dependency to get the current user from the request.
     """
@@ -60,15 +60,24 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     if not user_id:
         logger.warning(f"Session ID {session_id} not found in active sessions.")
         raise HTTPException(status_code=401, detail="Not authenticated, invalid session ID")
-    user = auth.get_user(db, user_id)
+    user = await auth.get_user(db, user_id)
     if not user:
         logger.warning(f"User ID {user_id} not found in database.")
         raise HTTPException(status_code=401, detail="Not authenticated, user not found associated with user id: {user_id}")
     logger.info(f"Session ID {session_id} found, user: {user}")
     return user
 
+async def get_current_user_auth():
+    async def get_current_user_auth(request: Request, db: AsyncSession = Depends(get_db)):
+        try:
+            user = await get_current_user(request, db)
+            if not user:
+                return None
+            return auth.get_user_auth(user.user_id)
+        except HTTPException:
+            return None
 
-@app.post('/auth/register', response_model=int)
+@app.post('/auth/register', response_model=PydanticUserProfile)
 async def register_user(register: UserRegister, db: AsyncSession = Depends(get_db)):
     '''register a new user'''
     if not register:
@@ -90,7 +99,7 @@ async def register_user(register: UserRegister, db: AsyncSession = Depends(get_d
 @app.post('/auth/login')
 async def login_user(response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)):
     '''login a user'''
-    user = await auth.get_user_by_username(db, login.username)
+    user = await auth.get_user_auth_by_username(db, login.username)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username")
     if not auth.verify_password(login.password, user.hashed_password):
@@ -102,7 +111,7 @@ async def login_user(response: Response, login: UserLogin, db: AsyncSession = De
 
 @app.post('/auth/logout')
 async def logout_user(response: Response, request: Request,
-                      current_user: UserProfile = Depends(get_current_user)
+                      current_user: UserAuth = Depends(get_current_user_auth())
                       ):
     """
     Logs out the user by removing the session from the server-side store

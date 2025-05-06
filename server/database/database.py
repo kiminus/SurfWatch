@@ -167,7 +167,7 @@ async def load_initial_data():
 
 async def db_init():
     await create_db_and_tables()
-    await load_initial_data()
+    # await load_initial_data()
 
 # Run the main function
 if __name__ == "__main__":
