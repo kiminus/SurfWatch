@@ -1,8 +1,7 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from database.database import db_init, get_db
-from database.models.user import UserProfile
-from models.user import UserAuth, UserRegister, UserLogin, UserProfile as PydanticUserProfile
+from models.user import UserAuth, UserRegister, UserLogin, UserProfile
 import controllers.auth_controller as auth
 from utils import logger
 from contextlib import asynccontextmanager
@@ -48,95 +47,89 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # region Auth
-@app.get('/users/me', response_model=PydanticUserProfile)
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> PydanticUserProfile:
+@app.get('/users/me')
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> Optional[UserProfile]:
     """
-    Dependency to get the current user from the request.
+    Dependency to get the current user from the request. return `None` if the user is not authenticated.
     """
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     if not session_id:
-        raise HTTPException(status_code=401, detail="Not authenticated, missing session ID")
+        return None
     user_id = active_sessions.get(session_id)
     if not user_id:
-        logger.warning(f"Session ID {session_id} not found in active sessions.")
-        raise HTTPException(status_code=401, detail="Not authenticated, invalid session ID")
+        return None
     user = await auth.get_user(db, user_id)
     if not user:
-        logger.warning(f"User ID {user_id} not found in database.")
-        raise HTTPException(status_code=401, detail="Not authenticated, user not found associated with user id: {user_id}")
+        return None
     logger.info(f"Session ID {session_id} found, user: {user}")
     return user
 
-async def get_current_user_auth():
-    async def get_current_user_auth(request: Request, db: AsyncSession = Depends(get_db)):
-        try:
-            user = await get_current_user(request, db)
-            if not user:
-                return None
-            return auth.get_user_auth(user.user_id)
-        except HTTPException:
-            return None
+async def get_current_user_auth(request, db: AsyncSession) -> Optional[UserAuth]:
+    """dependency to get the current user auth from the request. return `None` if the user is not authenticated."""
+    user = await get_current_user(request, db)
+    return auth.get_user_auth(user.user_id)
 
-@app.post('/auth/register', response_model=PydanticUserProfile)
-async def register_user(register: UserRegister, db: AsyncSession = Depends(get_db)):
-    '''register a new user'''
+@app.post('/auth/register')
+async def register_user(register: UserRegister, db: AsyncSession = Depends(get_db)) -> int:
+    '''register a new user. return the `user_id` on success, throw `HTTPException` error if unsuccessful.'''
+    # validate the registration data against the UserRegister model
     if not register:
-        raise HTTPException(status_code=400, detail="Invalid registration data, or not conforming to the model `UserRegister`")
-    # assume all fields are valid for simplicity
-    if not register.username or not register.password or not register.email:
-        raise HTTPException(status_code=400, detail="Missing required fields")
-    
-    exist_username = await auth.get_user_by_username(db, register.username)
-    if exist_username:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    
-    exist_email = await auth.get_user_by_email(db, register.email)
-    if exist_email:
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(status_code=401, detail="Invalid registration data, or not conforming to the model `UserRegister`")
+    if not register.username:
+        raise HTTPException(status_code=401, detail="Missing required field: username")
+    if not register.password:
+        raise HTTPException(status_code=401, detail="Missing required field: password")
+    if not register.email:
+        raise HTTPException(status_code=401, detail="Missing required field: email")
+    if not register.displayName:
+        raise HTTPException(status_code=401, detail="Missing required field: displayName")
     
     return await auth.create_user(db, register)
 
 @app.post('/auth/login')
 async def login_user(response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)):
-    '''login a user'''
-    user = await auth.get_user_auth_by_username(db, login.username)
-    if not user:
+    '''login a user. On success, set session cookie. on failure, throw `HTTPException` error. 
+    even there is already a session cookie, it will be replaced with a new one.'''
+    # get the user auth from the database
+    user_auth = await auth.get_user_auth_by_username(db, login.username)
+    if not user_auth:
         raise HTTPException(status_code=401, detail="Invalid username")
-    if not auth.verify_password(login.password, user.hashed_password):
+    if not auth.verify_password(login.password, user_auth.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid password")
     
-    session_id = auth.generate_session_id(db, login)
-    active_sessions[session_id] = user.user_id
+    session_id = auth.generate_session_id()
+    active_sessions[session_id] = user_auth.user_id
     response.set_cookie(key=SESSION_COOKIE_NAME, value=session_id, httponly=True, secure=True, samesite="lax", max_age=60*60*24)  # 1 day expiration
 
 @app.post('/auth/logout')
-async def logout_user(response: Response, request: Request,
-                      current_user: UserAuth = Depends(get_current_user_auth())
-                      ):
+async def logout_user(response: Response, request: Request):
     """
     Logs out the user by removing the session from the server-side store
     and clearing the session cookie.
+    
+    Returns a JSON response indicating success or failure.
     """
-    logger.info(f"Logout request for user: {current_user.username}")
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
-
-    # --- Simple Session Deletion ---
-    if session_id and session_id in active_sessions:
-        del active_sessions[session_id]
-        logger.info(f"Removed session {session_id[:8]}... from server store.")
-    elif session_id:
-        logger.warning(f"Logout attempt with session ID not found in store: {session_id[:8]}...")
-    # -----------------------------
+    if not session_id or session_id not in active_sessions:
+        raise HTTPException(status_code=401, detail="User not logged in")
+    
+    # Get user info for logging before deletion
+    user_id = active_sessions[session_id]
+    logger.info(f"Logout request for user ID: {user_id}")
+    
+    # Delete session
+    del active_sessions[session_id]
+    logger.info(f"Removed session {session_id[:8]}... from server store.")
 
     # Clear the cookie
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value="",
         httponly=True,
-        secure=False, # Match settings used during set
-        samesite="lax", # Match settings used during set
+        secure=True, # Should match login settings
+        samesite="lax",
         max_age=0 # Expire immediately
     )
-    response.status_code = 200
-    return {"message": "Logged out successfully"}
+    
+    return {"status": "success", "message": "Logged out successfully"}
 # endregion

@@ -6,6 +6,12 @@ class UserAuth(pydantic.BaseModel):
     user_id: int
     username: str
     hashed_password: str
+    
+    model_config = {
+        'orm_mode': True,
+        'allow_population_by_field_name': True,
+        'from_attributes': True,
+    }
 
 class UserLogin(pydantic.BaseModel):
     '''this is the form used to login'''

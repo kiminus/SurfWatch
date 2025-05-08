@@ -8,12 +8,12 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AuthService from '../../services/AuthService';
 import colors from '../../utils/colors';
 import Header from '@/app/components/Header';
+import axios from 'axios';
 
 // Types for navigation props
 type AuthStackParamList = {
@@ -35,20 +35,30 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Error', 'Username and password are required');
+      setMessage('Username and password are required');
       return;
     }
 
     setIsLoading(true);
     try {
       const data = { username, password };
+      setMessage('Logging in...');
       await AuthService.login(data);
-      navigation.navigate('Dashboard');
+      /**
+       * TODO: Handle successful login
+       */
     } catch (error) {
-      Alert.alert('Login Failed', 'Invalid username or password');
+      if (axios.isAxiosError(error)) {
+        setMessage(
+          `Login failed: ${
+            error.response ? error.response?.data.detail : 'NO RESPONSE'
+          } (${error.response ? error.status : '500'})`
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +90,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry
         />
+
+        <Text style={styles.messageText}>{message}</Text>
 
         <TouchableOpacity
           style={styles.button}
@@ -114,30 +126,32 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleRegister = async () => {
     // Basic validation
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Error', 'Username and password are required');
+      setMessage('Username and password are required');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setMessage('Passwords do not match');
       return;
     }
 
     setIsLoading(true);
     try {
-      await AuthService.register({ username, password, email });
-      Alert.alert('Success', 'Registration successful! Please log in.', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') },
-      ]);
+      await AuthService.register({ username, password, email, displayName });
+      setMessage('Registration successful! Please log in.');
+      navigation.navigate('Login');
     } catch (error) {
-      const errorMessage =
-        (error as any)?.response?.data?.detail ||
-        'Registration failed. Please try again.';
-      Alert.alert('Registration Error', errorMessage);
+      if (axios.isAxiosError(error)) {
+        setMessage(`Registration failed. ${error.response?.data.detail}`);
+      } else {
+        setMessage('Registration failed. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -166,11 +180,19 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
         <TextInput
           style={styles.input}
-          placeholder="Email (optional)"
+          placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Display Name"
+          value={displayName}
+          onChangeText={setDisplayName}
+          autoCapitalize="none"
         />
 
         <TextInput
@@ -188,6 +210,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           onChangeText={setConfirmPassword}
           secureTextEntry
         />
+
+        <Text style={styles.messageText}>{message}</Text>
 
         <TouchableOpacity
           style={styles.button}
@@ -304,6 +328,12 @@ const styles = StyleSheet.create({
   linkText: {
     color: colors.primary,
     fontSize: 16,
+    textDecorationLine: 'underline',
+  },
+  messageText: {
+    color: colors.blue,
+    fontSize: 16,
+    marginTop: 10,
   },
   backButton: {
     position: 'absolute',

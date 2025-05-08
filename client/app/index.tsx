@@ -18,7 +18,6 @@ import {
   RegisterScreen,
 } from './screens/auth/AuthScreens';
 import { UserProfile } from './models/user';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Define Navigation Param Lists
 type AuthStackParamList = {
@@ -66,7 +65,8 @@ const MainAppLayout: React.FC = () => {
 
 // Root Navigator Component
 const RootNavigator: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -93,9 +93,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
+      <RootNavigator />
     </SafeAreaView>
   );
 }

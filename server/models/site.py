@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 class Crowdness(BaseModel):
+    
     time: str # UTC time in ISO format
     crowdness: int # number of people in the site at that time
 
@@ -11,6 +12,10 @@ class WaveQuality(BaseModel):
 
 class SiteShort(BaseModel):
     '''very basic site info'''
+    model_config = {
+        'orm_mode': True,
+        'allow_population_by_field_name': True,
+    }
     site_id: int
     site_name: str
     site_name_short: str

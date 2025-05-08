@@ -31,7 +31,7 @@ export default {
    * @param credentials - User credentials for login
    * @returns {Promise<string | null>} - The session ID or null if login failed
    */
-  async login(credentials: UserLogin): Promise<string | null> {
+  async login(credentials: UserLogin): Promise<string | void> {
     try {
       const response = await ApiClient.post<{ session_id: string }>(
         '/auth/login',
@@ -39,9 +39,6 @@ export default {
       );
       return response.data.session_id;
     } catch (error) {
-      const axiosError = error as AxiosError;
-      const detail = (axiosError.response?.data as any)?.detail;
-      console.error('Login Error:', detail || axiosError.message);
       throw error; // Re-throw the error for the caller to handle
     }
   },
@@ -59,9 +56,6 @@ export default {
       );
       return response.data.session_id;
     } catch (error) {
-      const axiosError = error as AxiosError;
-      const detail = (axiosError.response?.data as any)?.detail;
-      console.error('Register Error:', detail || axiosError.message);
       throw error; // Re-throw the error for the caller to handle
     }
   },
@@ -73,8 +67,7 @@ export default {
       await ApiClient.post('/auth/logout');
       console.log('Logged out successfully.');
     } catch (error) {
-      const axiosError = error as AxiosError;
-      console.error('Logout Error:', axiosError.message);
+      throw error; // Re-throw the error for the caller to handle
     }
-  }
+  },
 };
