@@ -30,29 +30,14 @@ export interface UserRegister {
 }
 
 /**
- * Corresponds to UserSettings in Python
- */
-export interface UserSettings {
-  user_id: number;
-  show_streak?: boolean; // Optional field with default True
-}
-
-/**
- * Corresponds to UserPreference in Python
- */
-export interface UserPreference {
-  user_id: number;
-  preferred_sites?: number[] | null; // Optional list maps to array or null
-}
-
-/**
  * this profile is displayed in public
  * Corresponds to UserViewProfile in Python
  */
 export interface UserViewProfile {
   user_id: number;
-  displayName: string;
+  display_name: string;
   streak_days?: number; // Optional field with default 0
+  show_streak?: boolean;
   avatar_url?: string | null; // Optional field with default None maps to optional or null
 }
 
@@ -63,6 +48,4 @@ export interface UserViewProfile {
  */
 export interface UserProfile extends UserViewProfile {
   email: string;
-  preferences?: UserPreference | null; // Optional field with default None maps to optional or null
-  settings?: UserSettings | null; // Optional field with default None maps to optional or null
 }

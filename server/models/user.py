@@ -32,7 +32,7 @@ class UserViewProfile(pydantic.BaseModel):
     }
     '''this profile is displayed in public'''
     user_id: int
-    displayName: str
+    display_name: str
     streak_days: int = 0
     avatar_url: Optional[str] = None
 

@@ -87,7 +87,7 @@ async def register_user(register: UserRegister, db: AsyncSession = Depends(get_d
     return await auth.create_user(db, register)
 
 @app.post('/auth/login')
-async def login_user(response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login_user(response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)) -> str:
     '''login a user. On success, set session cookie. on failure, throw `HTTPException` error. 
     even there is already a session cookie, it will be replaced with a new one.'''
     # get the user auth from the database
@@ -97,9 +97,10 @@ async def login_user(response: Response, login: UserLogin, db: AsyncSession = De
     if not auth.verify_password(login.password, user_auth.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid password")
     
-    session_id = auth.generate_session_id()
+    session_id = await auth.generate_session_id()
     active_sessions[session_id] = user_auth.user_id
     response.set_cookie(key=SESSION_COOKIE_NAME, value=session_id, httponly=True, secure=True, samesite="lax", max_age=60*60*24)  # 1 day expiration
+    return session_id
 
 @app.post('/auth/logout')
 async def logout_user(response: Response, request: Request):
@@ -133,3 +134,12 @@ async def logout_user(response: Response, request: Request):
     
     return {"status": "success", "message": "Logged out successfully"}
 # endregion
+
+@app.get("/sites/recommendations")
+async def get_recommendations(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Get recommendations for the user. 
+    This is a placeholder function and should be implemented.
+    """
+    
+    

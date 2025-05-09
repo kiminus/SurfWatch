@@ -1,8 +1,6 @@
 // App.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 
 // Import Components/Screens
 import Header from './components/Header';
@@ -12,43 +10,27 @@ import MapScreen from './screens/Map/MapScreen';
 import ProfileScreen from './screens/profile/ProfileScreen';
 
 // Import Auth Components
-import {
-  LoadingScreen,
-  LoginScreen,
-  RegisterScreen,
-} from './screens/auth/AuthScreens';
+import { LoginScreen, RegisterScreen } from './screens/auth/AuthScreens';
 import { UserProfile } from './models/user';
-
-// Define Navigation Param Lists
-type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
-
-type AppStackParamList = {
-  MainApp: undefined;
-};
-
-type RootStackParamList = AuthStackParamList & AppStackParamList;
-
-// Stack Navigator
-const Stack = createStackNavigator<RootStackParamList>();
+import { AppContext } from './contexts/AppContext';
+import { ScreenNavigator } from './models/shared';
+import AuthService from './services/AuthService';
 
 // Main App Layout Component
-const MainAppLayout: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('home');
-  const [user, setUser] = useState<UserProfile>();
+const MainAppLayout: React.FC<{ tab?: ScreenNavigator }> = ({ tab }) => {
+  const [activeTab, setActiveTab] = useState<ScreenNavigator>(
+    tab || ScreenNavigator.Home
+  );
 
   // Render the active screen based on the selected tab
   const renderScreen = () => {
     switch (activeTab) {
-      case 'home':
+      case ScreenNavigator.Home:
         return <DashboardScreen />;
-      case 'map':
+      case ScreenNavigator.Map:
         return <MapScreen />;
-      case 'profile':
-        // Pass the user object from AuthContext to ProfileScreen
-        return <ProfileScreen user={user} />;
+      case ScreenNavigator.Profile:
+        return <ProfileScreen />;
       default:
         return <DashboardScreen />;
     }
@@ -63,37 +45,87 @@ const MainAppLayout: React.FC = () => {
   );
 };
 
-// Root Navigator Component
-const RootNavigator: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
+const ServiceProviders: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [currentScreen, setCurrentScreen] = useState<ScreenNavigator>(
+    ScreenNavigator.Home
+  );
+  /*
+   * navigation stack service
+   */
+  const navigationStack: Record<string, React.JSX.Element> = {
+    login: <LoginScreen />,
+    register: <RegisterScreen />,
+    home: <MainAppLayout tab={ScreenNavigator.Home} />,
+    map: <MainAppLayout tab={ScreenNavigator.Map} />,
+    profile: <MainAppLayout tab={ScreenNavigator.Profile} />,
+  };
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  /*
+   * navigate to a selected screen. if `user` is null, forced to login
+   * @param screen - The screen to navigate to
+   */
+  const navigate = (screen: ScreenNavigator) => {
+    console.log('Navigating to screen:', screen);
+    if (
+      screen === ScreenNavigator.Login ||
+      screen === ScreenNavigator.Register
+    ) {
+      setCurrentScreen(screen);
+      return screen;
+    }
+
+    // For other screens, require user to be logged in
+    if (!user) {
+      setCurrentScreen(ScreenNavigator.Login);
+      return ScreenNavigator.Login;
+    }
+
+    // User is logged in, allow navigation to the requested screen
+    console.log('user is logged in', user);
+    setCurrentScreen(screen);
+    return screen;
+  };
+
+  // try to get current user profile
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const userProfile = await AuthService.getCurrentUser();
+        if (userProfile) {
+          setUser(userProfile);
+          setCurrentScreen(ScreenNavigator.Home);
+        } else {
+          setCurrentScreen(ScreenNavigator.Login);
+        }
+        console.log('User profile:', userProfile);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        setCurrentScreen(ScreenNavigator.Login);
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
-        // User IS logged in: show the main app layout screen
-        <Stack.Screen name="MainApp" component={MainAppLayout} />
-      ) : (
-        // User IS NOT logged in: show the auth screens
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-        </>
-      )}
-    </Stack.Navigator>
+    <AppContext.Provider
+      value={{
+        user,
+        setUser,
+        currentScreen,
+        navigate,
+      }}
+    >
+      {navigationStack[currentScreen]}
+    </AppContext.Provider>
   );
 };
-
 // Main App Component
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <RootNavigator />
+      <ServiceProviders />
     </SafeAreaView>
   );
 }

@@ -14,7 +14,7 @@ export default {
   async getCurrentUser(): Promise<UserProfile | null> {
     try {
       const response = await ApiClient.get<UserProfile>('/users/me/');
-      return response.data;
+      return response.data as unknown as UserProfile;
     } catch (error) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 401) {
@@ -33,11 +33,8 @@ export default {
    */
   async login(credentials: UserLogin): Promise<string | void> {
     try {
-      const response = await ApiClient.post<{ session_id: string }>(
-        '/auth/login',
-        credentials
-      );
-      return response.data.session_id;
+      const response = await ApiClient.post('/auth/login', credentials);
+      return response.data;
     } catch (error) {
       throw error; // Re-throw the error for the caller to handle
     }

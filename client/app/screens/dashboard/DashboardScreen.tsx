@@ -24,7 +24,9 @@ const DashboardScreen: React.FC = () => {
   const fetchRecommendedSites = async () => {
     try {
       setError(null);
-      const response = await ApiClient.get<SiteShort[]>('/sites/recommended');
+      const response = await ApiClient.get<SiteShort[]>(
+        '/sites/recommendations'
+      );
       setRecommendedSites(response.data);
     } catch (err) {
       console.error('Error fetching recommended sites:', err);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,33 +9,20 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import AuthService from '../../services/AuthService';
 import colors from '../../utils/colors';
 import Header from '@/app/components/Header';
 import axios from 'axios';
-
-// Types for navigation props
-type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Dashboard: undefined;
-};
-
-type LoginScreenProps = {
-  navigation: StackNavigationProp<AuthStackParamList, 'Login'>;
-};
-
-type RegisterScreenProps = {
-  navigation: StackNavigationProp<AuthStackParamList, 'Register'>;
-};
+import { AppContext } from '@/app/contexts/AppContext';
+import { ScreenNavigator } from '@/app/models/shared';
 
 // Login Screen Component
-export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+export const LoginScreen: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const { navigate, setUser } = useContext(AppContext);
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -47,10 +34,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const data = { username, password };
       setMessage('Logging in...');
-      await AuthService.login(data);
-      /**
-       * TODO: Handle successful login
-       */
+      const session = await AuthService.login(data);
+      console.log('Session ID:', session);
+      if (!session) {
+        setMessage('Login failed. Please try again.');
+        return;
+      }
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setMessage('Failed to fetch user profile. Please try again.');
+        return;
+      }
+      console.log('User profile:', user);
+      setMessage('Login successful!');
+      setUser(user);
+      navigate(ScreenNavigator.Home);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(
@@ -107,7 +105,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.linkButton}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigate(ScreenNavigator.Register)}
           disabled={isLoading}
         >
           <Text style={styles.linkText}>Don't have an account? Sign up</Text>
@@ -118,9 +116,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 };
 
 // Register Screen Component
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({
-  navigation,
-}) => {
+export const RegisterScreen: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -128,6 +124,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [message, setMessage] = useState('');
+  const { navigate } = useContext(AppContext);
 
   const handleRegister = async () => {
     // Basic validation
@@ -145,7 +142,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     try {
       await AuthService.register({ username, password, email, displayName });
       setMessage('Registration successful! Please log in.');
-      navigation.navigate('Login');
+      navigate(ScreenNavigator.Login);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(`Registration failed. ${error.response?.data.detail}`);
@@ -227,7 +224,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
         <TouchableOpacity
           style={styles.linkButton}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigate(ScreenNavigator.Login)}
           disabled={isLoading}
         >
           <Text style={styles.linkText}>Already have an account? Log in</Text>

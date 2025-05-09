@@ -1,5 +1,5 @@
 // screens/profile/ProfileScreen.tsx
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,31 +12,27 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useAuth, UserProfile } from '../../services/AuthService';
-import ApiClient from '../../services/ApiClient';
 import colors from '../../utils/colors';
+import { AppContext } from '@/app/contexts/AppContext';
+import AuthService from '@/app/services/AuthService';
+import { ScreenNavigator } from '@/app/models/shared';
 
-interface ProfileScreenProps {
-  user: UserProfile | null;
-}
-
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
+const ProfileScreen: React.FC = () => {
   // State for settings
+  const { user, navigate } = useContext(AppContext);
   const [showStreak, setShowStreak] = useState<boolean>(
     user?.show_streak || false
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { logout } = useAuth();
 
   // Handle logout
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      await logout();
-      // No need to navigate - AuthContext will handle showing login screen
+      await AuthService.logout();
+      navigate(ScreenNavigator.Login);
     } catch (error) {
       console.error('Logout error:', error);
-      Alert.alert('Error', 'Failed to log out. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -76,11 +72,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
             <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
           ) : (
             <View style={styles.defaultAvatar}>
-              <Text style={styles.avatarInitial}>
-                {user.display_name
-                  ? user.display_name[0].toUpperCase()
-                  : user.username[0].toUpperCase()}
-              </Text>
+              <Text style={styles.avatarInitial}>{user.display_name}</Text>
             </View>
           )}
           <TouchableOpacity style={styles.editAvatarButton}>
@@ -88,13 +80,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user }) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.displayName}>
-          {user.display_name || user.username}
-        </Text>
+        <Text style={styles.displayName}>{user.display_name}</Text>
 
-        <Text style={styles.username}>@{user.username}</Text>
-
-        {user.streak_days > 0 && (
+        {user.show_streak && (
           <View style={styles.streakContainer}>
             <Ionicons name="flame" size={16} color="#FF6B00" />
             <Text style={styles.streakText}>

@@ -2,45 +2,46 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import colors from '../utils/colors';
+import { ScreenNavigator } from '../models/shared';
 
 interface TabBarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab: ScreenNavigator;
+  setActiveTab: (tab: ScreenNavigator) => void;
 }
 
 export default function TabBar({ activeTab, setActiveTab }: TabBarProps) {
   return (
     <View style={styles.tabBar}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.tabButton}
-        onPress={() => setActiveTab('home')}
+        onPress={() => setActiveTab(ScreenNavigator.Home)}
       >
-        <Ionicons 
-          name={activeTab === 'home' ? "home" : "home-outline"} 
-          size={24} 
-          color={activeTab === 'home' ? colors.primary : "#000"} 
+        <Ionicons
+          name={activeTab === 'home' ? 'home' : 'home-outline'}
+          size={24}
+          color={activeTab === 'home' ? colors.primary : '#000'}
         />
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.tabButton}
-        onPress={() => setActiveTab('map')}
+        onPress={() => setActiveTab(ScreenNavigator.Map)}
       >
-        <MaterialIcons 
-          name="surfing" 
-          size={28} 
-          color={activeTab === 'map' ? colors.primary : "#000"} 
+        <MaterialIcons
+          name="surfing"
+          size={28}
+          color={activeTab === 'map' ? colors.primary : '#000'}
         />
       </TouchableOpacity>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.tabButton}
-        onPress={() => setActiveTab('profile')}
+        onPress={() => setActiveTab(ScreenNavigator.Profile)}
       >
-        <Ionicons 
-          name={activeTab === 'profile' ? "person" : "person-outline"} 
-          size={24} 
-          color={activeTab === 'profile' ? colors.primary : "#000"} 
+        <Ionicons
+          name={activeTab === 'profile' ? 'person' : 'person-outline'}
+          size={24}
+          color={activeTab === 'profile' ? colors.primary : '#000'}
         />
       </TouchableOpacity>
     </View>

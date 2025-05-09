@@ -3,7 +3,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import colors from '../../utils/colors';
-import { User } from '@/app/models/user';
+import { UserProfile } from '@/app/models/user';
 
 // Favorite beaches data
 const favoriteBeaches = [
@@ -12,7 +12,13 @@ const favoriteBeaches = [
   { id: 3, name: 'PIPELINE, OAHU' },
 ];
 
-export default function AboutMe({user, setUser}: {user: User, setUser: (user: User) => void}) {
+export default function AboutMe({
+  user,
+  setUser,
+}: {
+  user: UserProfile;
+  setUser: (user: UserProfile) => void;
+}) {
   return (
     <View style={styles.container}>
       <View style={styles.aboutMeItem}>
@@ -22,7 +28,7 @@ export default function AboutMe({user, setUser}: {user: User, setUser: (user: Us
           <Text style={styles.aboutMeText}>LA JOLLA SHORES, SAN DIEGO</Text>
         </View>
       </View>
-      
+
       <View style={styles.aboutMeItem}>
         <Text style={styles.aboutMeLabel}>Ideal Surf Day</Text>
         <View style={styles.aboutMeRow}>
@@ -38,10 +44,10 @@ export default function AboutMe({user, setUser}: {user: User, setUser: (user: Us
           <Text style={styles.aboutMeText}>2-3 FT</Text>
         </View>
       </View>
-      
+
       <View style={styles.aboutMeItem}>
         <Text style={styles.aboutMeLabel}>Favorite Beaches</Text>
-        {favoriteBeaches.map(beach => (
+        {favoriteBeaches.map((beach) => (
           <View key={beach.id} style={styles.favoriteBeach}>
             <Text style={styles.favoriteBeachNumber}>{beach.id}.</Text>
             <Text style={styles.favoriteBeachName}>{beach.name}</Text>
