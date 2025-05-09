@@ -30,7 +30,7 @@ const ProfileScreen: React.FC = () => {
     try {
       setIsLoading(true);
       await AuthService.logout();
-      navigate(ScreenNavigator.Login);
+      await navigate(ScreenNavigator.Login);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

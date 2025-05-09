@@ -65,20 +65,53 @@ const ServiceProviders: React.FC = () => {
    * navigate to a selected screen. if `user` is null, forced to login
    * @param screen - The screen to navigate to
    */
-  const navigate = (screen: ScreenNavigator) => {
+  const navigate = async (screen: ScreenNavigator) => {
     console.log('Navigating to screen:', screen);
     if (
       screen === ScreenNavigator.Login ||
       screen === ScreenNavigator.Register
     ) {
+      console.log('user login/register screen is allowed to navigate at any time');
       setCurrentScreen(screen);
       return screen;
     }
 
     // For other screens, require user to be logged in
     if (!user) {
-      setCurrentScreen(ScreenNavigator.Login);
-      return ScreenNavigator.Login;
+      console.log('user is not logged in, redirecting to login'); // Kept from original selection
+      
+      const userBecameAvailable = await new Promise<boolean>((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 4; // Controls the number of attempts (4 times)
+        const intervalMs = 50; // Interval duration (50ms)
+
+        const intervalId = setInterval(() => {
+          // `user` refers to the state variable from the ServiceProviders component's scope.
+          // It will reflect changes if `setUser` is called elsewhere.
+          if (user) {
+            clearInterval(intervalId);
+            resolve(true); // User state is now populated
+          } else {
+            attempts++;
+            // Kept from original selection, this will log on each attempt where user is null
+            console.log('waiting for user to update ...'); 
+            if (attempts >= maxAttempts) {
+              clearInterval(intervalId);
+              resolve(false); // Timed out, user state still not populated
+            }
+          }
+        }, intervalMs);
+      });
+
+      if (!userBecameAvailable) {
+        // If user state did not update within the timeout period (promise resolved to false),
+        // then set current screen to Login and return.
+        setCurrentScreen(ScreenNavigator.Login);
+        return ScreenNavigator.Login;
+      }
+      // If userBecameAvailable is true, it means `user` is now non-null.
+      // The code will fall through to the part after the `if (!user)` block
+      // in the navigate function, allowing navigation to the originally requested screen.
     }
 
     // User is logged in, allow navigation to the requested screen
@@ -92,12 +125,8 @@ const ServiceProviders: React.FC = () => {
     const fetchUserProfile = async () => {
       try {
         const userProfile = await AuthService.getCurrentUser();
-        if (userProfile) {
-          setUser(userProfile);
-          setCurrentScreen(ScreenNavigator.Home);
-        } else {
-          setCurrentScreen(ScreenNavigator.Login);
-        }
+        setUser(userProfile);
+        await navigate(ScreenNavigator.Home);
         console.log('User profile:', userProfile);
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -106,7 +135,6 @@ const ServiceProviders: React.FC = () => {
     };
     fetchUserProfile();
   }, []);
-
   return (
     <AppContext.Provider
       value={{

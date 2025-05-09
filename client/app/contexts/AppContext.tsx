@@ -13,5 +13,5 @@ export const AppContext = createContext<AppContextType>({
   user: null,
   setUser: () => {},
   currentScreen: ScreenNavigator.Login,
-  navigate: () => {},
+  navigate: async () => {},
 });

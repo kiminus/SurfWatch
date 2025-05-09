@@ -48,7 +48,7 @@ export const LoginScreen: React.FC = () => {
       console.log('User profile:', user);
       setMessage('Login successful!');
       setUser(user);
-      navigate(ScreenNavigator.Home);
+      await navigate(ScreenNavigator.Home);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(
@@ -105,7 +105,7 @@ export const LoginScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.linkButton}
-          onPress={() => navigate(ScreenNavigator.Register)}
+          onPress={async () => await navigate(ScreenNavigator.Register)}
           disabled={isLoading}
         >
           <Text style={styles.linkText}>Don't have an account? Sign up</Text>
@@ -142,7 +142,7 @@ export const RegisterScreen: React.FC = () => {
     try {
       await AuthService.register({ username, password, email, displayName });
       setMessage('Registration successful! Please log in.');
-      navigate(ScreenNavigator.Login);
+      await navigate(ScreenNavigator.Login);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(`Registration failed. ${error.response?.data.detail}`);
@@ -224,7 +224,7 @@ export const RegisterScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.linkButton}
-          onPress={() => navigate(ScreenNavigator.Login)}
+          onPress={async() => await navigate(ScreenNavigator.Login)}
           disabled={isLoading}
         >
           <Text style={styles.linkText}>Already have an account? Log in</Text>
