@@ -5,6 +5,14 @@
 
 - you will need to install
 - [Node.js](https://nodejs.org/en/download/) , version 22
+- pip pip 25.1.1
+- Python 3.13.3
+
+### add `.env` under the `server` folder
+- you need to add the following fields:
+```env
+DAT
+```
 
 # run the docker container
 
@@ -67,15 +75,20 @@ docker-compose up -d
 # Routes
 
 > ![note]
-> backend error form:
+> backend error is in datatype `AxiosError`, here is what you need to do to convert and use it:
 >
-> ```javascript
-> ApiError: Error {
->     name: 'Error',
->     message: 'HTTP_404: 404 Not Found',
->     details: {...}
+> ```typescript
+> try {
+>     // Your code logic here
+> } catch (error) {
+>     if (axios.isAxiosError(error)) {
+>         setErrorMessage(error.response?.data.detail);
+>     } else {
+>         setMessage('An unexpected error occurred.');
+>     }
 > }
 > ```
+
 
 ## Client - Server Communication
 

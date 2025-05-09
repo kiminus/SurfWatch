@@ -8,8 +8,7 @@ class UserAuth(pydantic.BaseModel):
     hashed_password: str
     
     model_config = {
-        'orm_mode': True,
-        'allow_population_by_field_name': True,
+        'validate_by_name': True,
         'from_attributes': True,
     }
 
@@ -28,8 +27,8 @@ class UserRegister(pydantic.BaseModel):
 
 class UserViewProfile(pydantic.BaseModel):
     model_config = {
-        'orm_mode': True,
-        'allow_population_by_field_name': True,
+        'from_attributes': True,
+        'validate_by_name': True,
     }
     '''this profile is displayed in public'''
     user_id: int
