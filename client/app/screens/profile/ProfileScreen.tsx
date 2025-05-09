@@ -82,14 +82,14 @@ const ProfileScreen: React.FC = () => {
 
         <Text style={styles.displayName}>{user.display_name}</Text>
 
-        {user.show_streak && (
+        {showStreak ? (
           <View style={styles.streakContainer}>
             <Ionicons name="flame" size={16} color="#FF6B00" />
             <Text style={styles.streakText}>
               {user.streak_days} day{user.streak_days !== 1 ? 's' : ''} streak
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Profile Stats */}
