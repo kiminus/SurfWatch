@@ -11,15 +11,14 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../../utils/colors';
 import { AppContext } from '@/app/contexts/AppContext';
 import AuthService from '@/app/services/AuthService';
-import { ScreenNavigator } from '@/app/models/shared';
 
 const ProfileScreen: React.FC = () => {
   // State for settings
-  const { user, navigate } = useContext(AppContext);
+  const { user, setUser } = useContext(AppContext);
   const [showStreak, setShowStreak] = useState<boolean>(
     user?.show_streak || false
   );
@@ -29,8 +28,7 @@ const ProfileScreen: React.FC = () => {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      await AuthService.logout();
-      await navigate(ScreenNavigator.Login);
+      await AuthService.logout(setUser);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

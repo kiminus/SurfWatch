@@ -1,5 +1,13 @@
 > ![note]
+>
 > the python model is the single source of truth, the client and server should be generated from the python model using `openapi-typescript`
+
+# Surfwatch
+
+## Project Overview
+
+- Surfwatch is a web application that provides users with information about surfing sites, including tide data, heatmaps, and user-generated content. The application is built using a combination of Python for the backend and React Native for the frontend.
+- live demo link: please run the project locally, follow the [instructions below](# How to run the project without docker (for development))
 
 # How to Run this project
 
@@ -8,21 +16,42 @@
 - pip pip 25.1.1
 - Python 3.13.3
 
-### add `.env` under the `server` folder
-- you need to add the following fields:
-```env
-DAT
+## How to run the project in development
+
+### run the client
+
+```bash
+cd client
+npm install --save-dev
+npx expo start
 ```
 
-# run the docker container
+you can download the android app [here](https://expo.dev/accounts/kiminus/projects/client/builds/3861ecc3-46b3-4505-b4e9-c5c379fafe58)
+
+- click the three dots on the top right corner and select download build
+- an `.apk` file will be downloaded, install it on your android device
+
+### run the server and database
+
+- make sure you dont install the `client` in the docker container, run those seperately
+- you will need to install [python](https://www.python.org/downloads/) version 3.10 or higher
+
+````bash
+docker-compose up --build --remove-orphans
+```
+
+---
+
+## run the docker container (for production)
 
 > ![note]
+>
 > you need to uncomment the `client` section when deploy to production, so all client, server and database will run in the same container
 > for development, you can run the client and server separately
 
 ```bash
-docker-compose up -d
-```
+docker-compose up --build --remove-orphans
+````
 
 - this will run the server on port 8000 and frontend on port 8081
 
@@ -44,31 +73,7 @@ surfwatch-client  |  LOG  [web] Logs will appear in the browser console
 
 - the first time you run this, it will take a while (especially frontend compilation, which can take about 5 minutes), if nothing happens, try to type `w` in the terminal as it will trigger expo to show web
 
----
 
-# How to run the project without docker (for development)
-
-### run the client
-
-```bash
-cd client
-npm install --save-dev
-npx expo start
-```
-
-you can download the android app [here](https://expo.dev/accounts/kiminus/projects/client/builds/3861ecc3-46b3-4505-b4e9-c5c379fafe58)
-
-- click the three dots on the top right corner and select download build
-- an `.apk` file will be downloaded, install it on your android device
-
-### run the server and database
-
-- make sure you dont install the `client` in the docker container, run those seperately
-- you will need to install [python](https://www.python.org/downloads/) version 3.10 or higher
-
-```bash
-docker-compose up -d
-```
 
 ---
 
@@ -79,16 +84,15 @@ docker-compose up -d
 >
 > ```typescript
 > try {
->     // Your code logic here
+>   // Your code logic here
 > } catch (error) {
->     if (axios.isAxiosError(error)) {
->         setErrorMessage(error.response?.data.detail);
->     } else {
->         setMessage('An unexpected error occurred.');
->     }
+>   if (axios.isAxiosError(error)) {
+>     setErrorMessage(error.response?.data.detail);
+>   } else {
+>     setMessage('An unexpected error occurred.');
+>   }
 > }
 > ```
-
 
 ## Client - Server Communication
 
@@ -118,3 +122,4 @@ docker-compose up -d
 
 - **GET** `/users/me/` - Get current user info
 - **GET** `/view/users/{id}` - Get other user view data by id
+````

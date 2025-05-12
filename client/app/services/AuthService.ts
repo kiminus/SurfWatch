@@ -4,6 +4,7 @@ import { AxiosError } from 'axios';
 // --- Interfaces ---
 import { UserProfile } from '../models/user';
 import { UserLogin, UserRegister } from '../models/user';
+import {  AppContextType } from '../contexts/AppContext';
 
 // --- AuthService Class ---
 export default {
@@ -11,10 +12,12 @@ export default {
    * fetches the current user profile from the server. if not cached
    * @returns {Promise<UserProfile | null>} - The user profile or null if not authenticated
    */
-  async getCurrentUser(): Promise<UserProfile | null> {
+  async getCurrentUser(setUser: AppContextType['setUser']): Promise<UserProfile | null> {
     try {
       const response = await ApiClient.get<UserProfile>('/users/me/');
-      return response.data as unknown as UserProfile;
+      const cuser = response.data as unknown as UserProfile;
+      setUser(cuser);
+      return cuser;
     } catch (error) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 401) {
@@ -59,9 +62,10 @@ export default {
   /**
    * Logs out the current user and clears the session.
    */
-  async logout(): Promise<void> {
+  async logout(setUser: AppContextType['setUser']): Promise<void> {
     try {
       await ApiClient.post('/auth/logout');
+      setUser(null); 
       console.log('Logged out successfully.');
     } catch (error) {
       throw error; // Re-throw the error for the caller to handle

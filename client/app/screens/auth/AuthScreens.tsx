@@ -40,15 +40,14 @@ export const LoginScreen: React.FC = () => {
         setMessage('Login failed. Please try again.');
         return;
       }
-      const user = await AuthService.getCurrentUser();
+      const user = await AuthService.getCurrentUser(setUser);
       if (!user) {
         setMessage('Failed to fetch user profile. Please try again.');
         return;
       }
       console.log('User profile:', user);
       setMessage('Login successful!');
-      setUser(user);
-      await navigate(ScreenNavigator.Home);
+      navigate(ScreenNavigator.Home);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(
@@ -142,7 +141,7 @@ export const RegisterScreen: React.FC = () => {
     try {
       await AuthService.register({ username, password, email, displayName });
       setMessage('Registration successful! Please log in.');
-      await navigate(ScreenNavigator.Login);
+      navigate(ScreenNavigator.Login);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage(`Registration failed. ${error.response?.data.detail}`);

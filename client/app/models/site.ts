@@ -1,53 +1,69 @@
+// Base model for Site and its related predictions
+
 /**
- * Corresponds to Crowdness in Python
+ * Interface representing the structure of daily crowdness predictions for a site.
+ * Corresponds to the SQLAlchemy 'DailyCrowdnessPrediction' model.
  */
-export interface Crowdness {
-  /** UTC time in ISO format */
-  time: string;
-  /** number of people in the site at that time */
-  crowdness: number;
+export interface DailyCrowdnessPrediction {
+  site_id: number; // Foreign key to sites.site_id, also primary key
+  h0: number;
+  h1: number;
+  h2: number;
+  h3: number;
+  h4: number;
+  h5: number;
+  h6: number;
+  h7: number;
+  h8: number;
+  h9: number;
+  h10: number;
+  h11: number;
+  h12: number;
+  h13: number;
+  h14: number;
+  h15: number;
+  h16: number;
+  h17: number;
+  h18: number;
+  h19: number;
+  h20: number;
+  h21: number;
+  h22: number;
+  h23: number;
+  // The 'sites' relationship back to Site is represented by this record being nested
+  // or linked within a Site object in TypeScript, typically via 'daily_prediction'.
 }
 
 /**
- * Corresponds to WaveQuality in Python
+ * Interface representing the structure of weekly crowdness predictions for a site.
+ * Corresponds to the SQLAlchemy 'WeeklyCrowdnessPrediction' model.
  */
-export interface WaveQuality {
-  /** UTC time in ISO format */
-  time: string;
-  /** wave quality rating (0-10) */
-  quality: number;
-  /** tide level (low, mid, high) */
-  tide: string; // Consider using an enum: 'low' | 'mid' | 'high'
+export interface WeeklyCrowdnessPrediction {
+  site_id: number; // Foreign key to sites.site_id, also primary key
+  Monday: number;
+  Tuesday: number;
+  Wednesday: number;
+  Thursday: number;
+  Friday: number;
+  Saturday: number;
+  Sunday: number;
+  // The 'sites' relationship back to Site is represented by this record being nested
+  // or linked within a Site object in TypeScript, typically via 'weekly_prediction'.
 }
 
 /**
- * very basic site info
- * Corresponds to SiteShort in Python
+ * Interface representing a tourism site or location.
+ * Corresponds to the SQLAlchemy 'Site' model.
  */
-export interface SiteShort {
+export interface Site {
   site_id: number;
   site_name: string;
   site_name_short: string;
-}
-
-/**
- * detailed site info
- * Corresponds to SiteDetails in Python
- * Extends SiteShort
- */
-export interface SiteDetails extends SiteShort {
-  site_desc: string;
-  site_url: string;
-  site_banner_url?: string | null; // Optional field with default None maps to optional or null
-  predict_daily_crowdness?: Crowdness[] | null; // Optional list maps to array or null
-}
-
-/**
- * full site info
- * Corresponds to Site in Python
- * Extends SiteDetails
- */
-export interface Site extends SiteDetails {
-  predict_hourly_crowdness?: Crowdness[] | null; // Optional list maps to array or null
-  predict_hourly_wave_quality?: WaveQuality[] | null; // Optional list maps to array or null
+  site_desc: string | null;
+  site_url: string | null;
+  site_banner_url: string | null;
+  daily_prediction?: DailyCrowdnessPrediction | null; // Relationship: one-to-one or null
+  weekly_prediction?: WeeklyCrowdnessPrediction | null; // Relationship: one-to-one or null
+  // raw_crowdness_readings could be an array here if you were to define that relationship
+  // on the Site model in SQLAlchemy (e.g., readings: Mapped[list["RawCrowdnessReading"]])
 }

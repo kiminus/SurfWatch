@@ -1,19 +1,28 @@
 // src/screens/MapScreen/index.js
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CrowdChart from './CrowdChart';
 import colors from '../../utils/colors';
+import { AppContext } from '@/app/contexts/AppContext';
 
 export default function MapScreen() {
-  return (
+  const { currentSite } = useContext(AppContext);
+  useEffect(() => {
+    // Fetch map data or perform any necessary setup here
+    if (currentSite) {
+      console.log('Current site:', currentSite);
+    } else {
+      console.log('No current site selected');
+    }
+  }, [currentSite]);
+  return currentSite ? (
     <View style={styles.container}>
-      <Image 
-        source={require('../../../assets/images/placeholder.png')} 
+      <Image
+        source={{ uri: currentSite.site_banner_url || '' }}
         style={styles.mapImage}
-        defaultSource={require('../../../assets/images/placeholder.png')}
       />
-      
+
       <View style={styles.mapOverlay}>
         <Text style={styles.forecastTitle}>Crowd Forecast</Text>
         <View style={styles.weatherContainer}>
@@ -21,18 +30,25 @@ export default function MapScreen() {
           <Text style={styles.weatherText}>65°</Text>
         </View>
       </View>
-      
+
       <View style={styles.mapLocation}>
-        <Text style={styles.mapLocationText}>Scripps Pier, San Diego CA</Text>
+        <Text style={styles.mapLocationText}>{currentSite.site_name}</Text>
       </View>
-      
+
       <CrowdChart />
-      
+
       <View style={styles.mapMessage}>
         <Text style={styles.mapMessageText}>
           Not as crowded as usual, get ready to catch some waves!
         </Text>
       </View>
+    </View>
+  ) : (
+    // Fallback UI when no site is selected
+    <View style={styles.container}>
+      <Text style={styles.mapMessageText}>
+        Please select a surf site to view the map.
+      </Text>
     </View>
   );
 }

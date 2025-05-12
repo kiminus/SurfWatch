@@ -1,5 +1,5 @@
 // screens/dashboard/DashboardScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,39 +10,35 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ApiClient from '../../services/ApiClient';
 import colors from '../../utils/colors';
-import { SiteShort } from '../../models/site'; // Adjust the import path as necessary
+import { Site } from '../../models/site'; // Adjust the import path as necessary
+import SiteService from '../../services/SiteService'; // Adjust the import path as necessary
+import { AppContext } from '@/app/contexts/AppContext';
+import { ScreenNavigator } from '@/app/models/shared';
 
 const DashboardScreen: React.FC = () => {
-  const [recommendedSites, setRecommendedSites] = useState<SiteShort[]>([]);
+  const [recommendedSites, setRecommendedSites] = useState<Site[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { currentSite, setCurrentSite, navigate } = useContext(AppContext);
+
+  // --------------- Config ---------------
+  const LOW_CROWD_LEVEL = 5;
+  const MEDIUM_CROWD_LEVEL = 10;
+  const HIGH_CROWD_LEVEL = 15;
 
   // Fetch recommended surf sites
   const fetchRecommendedSites = async () => {
+    if (!recommendedSites) return;
     try {
       setError(null);
-      const response = await ApiClient.get<SiteShort[]>(
-        '/sites/recommendations'
+      setRecommendedSites(
+        await SiteService.getAllSites(currentSite, setCurrentSite)
       );
-      setRecommendedSites(response.data);
     } catch (err) {
       console.error('Error fetching recommended sites:', err);
       setError('Unable to load recommendations. Please try again.');
-
-      // For demo purposes, use sample data if API fails
-      setRecommendedSites([
-        {
-          site_id: 1,
-          site_name: 'La Jolla Shores',
-          site_name_short: 'La Jolla',
-        },
-        { site_id: 2, site_name: "Black's Beach", site_name_short: "Black's" },
-        { site_id: 3, site_name: "Swami's Beach", site_name_short: "Swami's" },
-        { site_id: 4, site_name: 'Cardiff Reef', site_name_short: 'Cardiff' },
-      ]);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -59,40 +55,109 @@ const DashboardScreen: React.FC = () => {
     setRefreshing(true);
     fetchRecommendedSites();
   };
+  // helper function to get current crowd level
+  const getCrowdLevel = (site: Site): number => {
+    // get the current hour crowd level for the site, first get the current hour
+    const currentHour = new Date().getHours();
+    // then, get the crowd level for each hour, eg: 0 -> h0
+    switch (currentHour) {
+      case 0:
+        return site.daily_prediction!.h0;
+      case 1:
+        return site.daily_prediction!.h1;
+      case 2:
+        return site.daily_prediction!.h2;
+      case 3:
+        return site.daily_prediction!.h3;
+      case 4:
+        return site.daily_prediction!.h4;
+      case 5:
+        return site.daily_prediction!.h5;
+      case 6:
+        return site.daily_prediction!.h6;
+      case 7:
+        return site.daily_prediction!.h7;
+      case 8:
+        return site.daily_prediction!.h8;
+      case 9:
+        return site.daily_prediction!.h9;
+      case 10:
+        return site.daily_prediction!.h10;
+      case 11:
+        return site.daily_prediction!.h11;
+      case 12:
+        return site.daily_prediction!.h12;
+      case 13:
+        return site.daily_prediction!.h13;
+      case 14:
+        return site.daily_prediction!.h14;
+      case 15:
+        return site.daily_prediction!.h15;
+      case 16:
+        return site.daily_prediction!.h16;
+      case 17:
+        return site.daily_prediction!.h17;
+      case 18:
+        return site.daily_prediction!.h18;
+      case 19:
+        return site.daily_prediction!.h19;
+      case 20:
+        return site.daily_prediction!.h20;
+      case 21:
+        return site.daily_prediction!.h21;
+      case 22:
+        return site.daily_prediction!.h22;
+      case 23:
+        return site.daily_prediction!.h23;
+      default:
+        return 0; // Default value if hour is somehow out of range
+    }
+  };
 
   // Helper function to get crowd indicator color
   const getCrowdColor = (level: number): string => {
-    if (level < 4) return colors.green;
-    if (level < 7) return colors.lime;
-    if (level < 9) return colors.yellow;
+    if (level < LOW_CROWD_LEVEL) return colors.green;
+    if (level < MEDIUM_CROWD_LEVEL) return colors.lime;
+    if (level < HIGH_CROWD_LEVEL) return colors.yellow;
     return colors.orange;
   };
 
   // Helper function to render crowd level text
   const getCrowdText = (level: number): string => {
-    if (level < 4) return 'Low';
-    if (level < 7) return 'Moderate';
-    if (level < 9) return 'Busy';
+    // console.log('Crowd level:', level);
+    if (level < LOW_CROWD_LEVEL) return 'Low';
+    if (level < MEDIUM_CROWD_LEVEL) return 'Moderate';
+    if (level < HIGH_CROWD_LEVEL) return 'Busy';
     return 'Crowded';
   };
 
   // Render individual site card
-  const renderSiteCard = ({ item }: { item: SiteShort }) => {
+  const renderSiteCard = ({ item }: { item: Site }) => {
     // For demo, generate random crowd level between 1-10
-    const crowdLevel = Math.floor(Math.random() * 10) + 1;
 
     return (
-      <TouchableOpacity style={styles.siteCard}>
+      <TouchableOpacity
+        style={styles.siteCard}
+        onPress={() => {
+          // when pressed, navigate to the Map screen with the site ID
+          console.log('Navigate to Map screen with site:', item);
+          setCurrentSite(item);
+          // navigate to the Map screen
+          navigate(ScreenNavigator.Map);
+        }}
+      >
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <Text style={styles.siteName}>{item.site_name}</Text>
             <View
               style={[
                 styles.crowdIndicator,
-                { backgroundColor: getCrowdColor(crowdLevel) },
+                { backgroundColor: getCrowdColor(getCrowdLevel(item)) },
               ]}
             >
-              <Text style={styles.crowdText}>{getCrowdText(crowdLevel)}</Text>
+              <Text style={styles.crowdText}>
+                {getCrowdText(getCrowdLevel(item))}
+              </Text>
             </View>
           </View>
 

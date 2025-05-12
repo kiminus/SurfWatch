@@ -1,8 +1,11 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from database.database import db_init, get_db
 from models.user import UserAuth, UserRegister, UserLogin, UserProfile
 import controllers.auth_controller as auth
+import controllers.site_controller as site_controller
+
+from models.site import Site
 from utils import logger
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -135,11 +138,12 @@ async def logout_user(response: Response, request: Request):
     return {"status": "success", "message": "Logged out successfully"}
 # endregion
 
-@app.get("/sites/recommendations")
+@app.get("/sites/rec", response_model=List[Site])
 async def get_recommendations(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Get recommendations for the user. 
     This is a placeholder function and should be implemented.
+    for now, return all sites in the database
     """
-    
+    return await site_controller.get_all_sites(db)
     
