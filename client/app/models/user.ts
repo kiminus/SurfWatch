@@ -48,4 +48,5 @@ export interface UserViewProfile {
  */
 export interface UserProfile extends UserViewProfile {
   email: string;
+  username: string;
 }

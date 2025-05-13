@@ -80,6 +80,10 @@ const ProfileScreen: React.FC = () => {
 
         <Text style={styles.displayName}>{user.display_name}</Text>
 
+        <Text style={styles.username}>
+          @{user.username}
+        </Text>
+
         {showStreak ? (
           <View style={styles.streakContainer}>
             <Ionicons name="flame" size={16} color="#FF6B00" />

@@ -40,3 +40,4 @@ class UserProfile(UserViewProfile):
     '''this profile is displayed in private'''
     email: str
     show_streak: bool = True
+    username: str

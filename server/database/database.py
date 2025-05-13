@@ -120,26 +120,34 @@ async def load_initial_data():
         # Daily predictions for sites
         daily_prediction1 = DailyCrowdnessPrediction(
             site_id=1,
-            h0=10, h1=15, h2=20, h3=25, h4=30, h5=35, h6=40, h7=45,
-            h8=50, h9=55, h10=60, h11=65, h12=70, h13=75, h14=80, h15=85,
-            h16=90, h17=95, h18=100, h19=105, h20=110, h21=115, h22=120, h23=125
+            h0=0, h1=0, h2=0, h3=0,
+            h4=2, h5=2, h6=2, h7=4,
+            h8=6, h9=6, h10=8, h11=10,
+            h12=10, h13=10, h14=10, h15=10,
+            h16=8, h17=6, h18=4, h19=2,
+            h20=0, h21=0, h22=0, h23=0
         )
         daily_prediction2 = DailyCrowdnessPrediction(
             site_id=2,
-            h0=5, h1=10, h2=15, h3=20, h4=25, h5=30, h6=35, h7=40,
-            h8=45, h9=50, h10=55, h11=60, h12=65, h13=70, h14=75, h15=80,
-            h16=85, h17=90, h18=95, h19=100, h20=105, h21=110, h22=115, h23=120
+            h0=1, h1=1, h2=1, h3=1,
+            h4=5, h5=5, h6=5, h7=10,
+            h8=15, h9=15, h10=18, h11=20,
+            h12=20, h13=20, h14=20, h15=20,
+            h16=18, h17=15, h18=10, h19=5,
+            h20=1, h21=1, h22=1, h23=1
         )
         # Weekly predictions for sites
         weekly_prediction1 = WeeklyCrowdnessPrediction(
             site_id=1,
-            Monday=50, Tuesday=60, Wednesday=70, Thursday=80,
-            Friday=90, Saturday=100, Sunday=110
+            Monday=10, Tuesday=12, Wednesday=14,
+            Thursday=16, Friday=18, Saturday=20,
+            Sunday=12
         )
         weekly_prediction2 = WeeklyCrowdnessPrediction(
             site_id=2,
-            Monday=40, Tuesday=50, Wednesday=60, Thursday=70,
-            Friday=80, Saturday=90, Sunday=100
+            Monday=20, Tuesday=22, Wednesday=24,
+            Thursday=26, Friday=28, Saturday=30,
+            Sunday=22
         )
         # Add all prediction data to the session
         session.add_all([
@@ -157,7 +165,7 @@ async def load_initial_data():
                     RawCrowdnessReading(
                         time=start_time + timedelta(minutes=i * 30),  # Every 30 minutes
                         site_id=site_id,
-                        crowdness=random.randint(0, 100)  # Random crowdness between 0 and 100
+                        crowdness=random.randint(0, 20)  # Random crowdness between 0 and 100
                     )
                 )
 

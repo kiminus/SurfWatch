@@ -35,8 +35,12 @@ async def get_user(db: AsyncSession, user_id: int) -> PydanticUserProfile:
     assert db_user.email, f"User ID {user_id} has no email"
     assert db_user.streak_days >= 0, f"User ID {user_id} has invalid streak days"
     
+    # then, fetch from the user auth to get the username
+    result = await db.execute(select(UserAuth).filter(UserAuth.user_id == user_id))
+    db_auth = result.scalars().first()
+    if not db_auth: return PydanticUserProfile.model_validate({**db_user.__dict__, "username": None})
         
-    return PydanticUserProfile.model_validate(db_user)
+    return PydanticUserProfile.model_validate({**db_user.__dict__, "username": db_auth.username})
 
 async def get_user_auth(db: AsyncSession, user_id: int) -> PydanticUserAuth:
     """

@@ -3,25 +3,25 @@ version: '3.8'
 
 services:
   # Database Service
-  db:
-    image: mysql:8.0
-    container_name: surfwatch-db
-    environment:
-      MYSQL_ROOT_PASSWORD: rad123709a&*ahsdh
-      MYSQL_DATABASE: surfwatch
-      MYSQL_USER: surfwatch-server
-      MYSQL_PASSWORD: surf143
-    ports:
-      - "3307:3306" # Map host port 3306 to container port 3306
-    volumes:
-      - db_data:/var/lib/mysql # Persist database data
-    networks:
-      - surfwatch-net
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: mysql:8.0
+  #   container_name: surfwatch-db
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rad123709a&*ahsdh
+  #     MYSQL_DATABASE: surfwatch
+  #     MYSQL_USER: surfwatch-server
+  #     MYSQL_PASSWORD: surf143
+  #   ports:
+  #     - "3307:3306" # Map host port 3306 to container port 3306
+  #   volumes:
+  #     - db_data:/var/lib/mysql # Persist database data
+  #   networks:
+  #     - surfwatch-net
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # Service for the Python backend server
   server:
@@ -46,9 +46,6 @@ services:
     networks:
       - surfwatch-net
     restart: unless-stopped # Restart policy
-    depends_on: # <<< ADD THIS SECTION
-      db:
-        condition: service_healthy
 
   # Service for the Expo frontend client
   # Uncomment this part to put everything in one docker-compose file

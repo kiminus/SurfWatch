@@ -19,13 +19,10 @@ import { Site } from './models/site';
 
 // Main App Layout Component
 const MainAppLayout: React.FC<{ tab?: ScreenNavigator }> = ({ tab }) => {
-  const [activeTab, setActiveTab] = useState<ScreenNavigator>(
-    tab || ScreenNavigator.Home
-  );
-
+  const {currentScreen, navigate} = React.useContext(AppContext);
   // Render the active screen based on the selected tab
   const renderScreen = () => {
-    switch (activeTab) {
+    switch (currentScreen) {
       case ScreenNavigator.Home:
         return <DashboardScreen />;
       case ScreenNavigator.Map:
@@ -41,7 +38,7 @@ const MainAppLayout: React.FC<{ tab?: ScreenNavigator }> = ({ tab }) => {
     <>
       <Header />
       <View style={styles.screenContainer}>{renderScreen()}</View>
-      <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <TabBar activeTab={currentScreen} setActiveTab={navigate} />
     </>
   );
 };
@@ -64,12 +61,13 @@ const ServiceProviders: React.FC = () => {
   /*
    * navigation stack service
    */
-  const navigationStack: Record<string, React.JSX.Element> = {
+  const navigationStack: Record<ScreenNavigator, React.JSX.Element> = {
     login: <LoginScreen />,
     register: <RegisterScreen />,
     home: <MainAppLayout tab={ScreenNavigator.Home} />,
     map: <MainAppLayout tab={ScreenNavigator.Map} />,
     profile: <MainAppLayout tab={ScreenNavigator.Profile} />,
+    search: <MainAppLayout tab={ScreenNavigator.Search} />,
   };
 
   /*
