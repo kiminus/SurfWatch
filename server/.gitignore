@@ -1,4 +1,4 @@
-venv
+AI/.venv/
 *__pycache__*
 /server/__pycache__/*
 __pycache__
