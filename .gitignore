@@ -3,3 +3,4 @@ server/__pycache__/*
 server/__pycache__
 .venv
 AI/train/Surfer-Spotting-2
+AI/results
