@@ -25,6 +25,12 @@ import os
 
 logger = logger.create_logger("Server Main")
 
+latest_image_store = {
+    "image_bytes": None,
+    "media_type": None,
+    "metadata": None  # latest RawCrowdnessReading stored
+}
+
 @asynccontextmanager
 async def app_init(app: FastAPI):
     # Code to run on startup
@@ -157,61 +163,43 @@ async def get_recommendations(request: Request, db: AsyncSession = Depends(get_d
     return await site_controller.get_all_sites(db)
 
 
-
+from database.models.site import RawCrowdnessReading
+from fastapi import Body
+from fastapi.responses import StreamingResponse
+import io
 import pathlib
 import uuid
 
 
-@app.post("/cam") 
-async def create_cam_data( 
-    request: Request, 
-    image: UploadFile = File(...),
-    jsonData: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+@app.put("/cam")
+async def upload_image_and_data(
+    data: RawCrowdnessReading = Body(...), 
+    image: UploadFile = File(...)
 ):
-    client_host = request.client.host if request.client else "Unknown"
-    logger.info(f"Received POST request on /cam endpoint from {client_host}")
-
-    try:
-        crowdness_reading_data = RawCrowdnessReading.parse_raw(jsonData)
-        logger.info(f"Received JSON data parsed as RawCrowdnessReading: {crowdness_reading_data.dict()}")
-        # TODO: Implement logic to save crowdness_reading_data to the database
-    except Exception as e:
-        logger.error(f"Error parsing JSON data into RawCrowdnessReading: {e}")
-        raise HTTPException(status_code=400, detail=f"Invalid JSON data format: {str(e)}")
-
-    if not image.content_type == "image/jpeg":
-        logger.error(f"Invalid image type: {image.content_type}. Expected image/jpeg.")
-        raise HTTPException(status_code=400, detail="Invalid image type. Only JPEG is allowed.")
-
-    saved_image_filename = None
-    try:
-        image_bytes = await image.read()
-        
-        original_filename = pathlib.Path(image.filename)
-        file_extension = original_filename.suffix or ".jpg"
-        
-        unique_id = uuid.uuid4()
-        saved_image_filename = f"{unique_id}{file_extension}"
-        
-        upload_dir = "uploads/cam_images"
-        file_path = os.path.join(upload_dir, saved_image_filename)
-
-        with open(file_path, "wb") as buffer:
-            buffer.write(image_bytes)
-        logger.info(f"Received image: {image.filename} (saved as {saved_image_filename}), size: {len(image_bytes)} bytes. Saved to {file_path}")
-
-    except Exception as e:
-        logger.error(f"Error processing image: {e}")
-        await image.close()
-        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
-    finally:
-        await image.close()
-
-    # TODO: create images table in database and attach it correctly.
+    """
+    Receives an image and JSON data matching RawCrowdnessReading.
+    Stores the latest image and its metadata in memory.
+    """
+    contents = await image.read()
+    latest_image_store["image_bytes"] = contents
+    latest_image_store["media_type"] = image.content_type
+    latest_image_store["metadata"] = data.model_dump()
+    
     return {
-        "status": "success",
-        "message": "Camera data and crowdness reading created successfully.",
-        "image_saved_as": saved_image_filename,
-        "reading_data": crowdness_reading_data.dict()
+        "message": f"Image '{image.filename}' and data uploaded successfully.",
+        "uploaded_data": data
     }
+
+
+@app.get("/get_image")
+async def get_latest_image():
+    """
+    Returns the latest image stored in memory.
+    """
+    if latest_image_store["image_bytes"] is None:
+        raise HTTPException(status_code=404, detail="No image available.")
+
+    image_bytes = latest_image_store["image_bytes"]
+    media_type = latest_image_store["media_type"]
+
+    return StreamingResponse(io.BytesIO(image_bytes), media_type=media_type)
