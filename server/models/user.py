@@ -7,10 +7,10 @@ class UserAuth(pydantic.BaseModel):
     username: str
     hashed_password: str
     
-    model_config = {
-        'validate_by_name': True,
-        'from_attributes': True,
-    }
+    model_config = pydantic.ConfigDict(
+        validate_by_name = True,
+        from_attributes = True,
+    )
 
 class UserLogin(pydantic.BaseModel):
     '''this is the form used to login'''
@@ -26,10 +26,10 @@ class UserRegister(pydantic.BaseModel):
 
 
 class UserViewProfile(pydantic.BaseModel):
-    model_config = {
-        'from_attributes': True,
-        'validate_by_name': True,
-    }
+    model_config = pydantic.ConfigDict(
+        validate_by_name = True,
+        from_attributes = True,
+    )
     '''this profile is displayed in public'''
     user_id: int
     display_name: str

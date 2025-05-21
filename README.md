@@ -44,14 +44,13 @@ docker-compose up --build --remove-orphans
 
 ## run the docker container (for production)
 
-> ![note]
->
+> [!note]
 > you need to uncomment the `client` section when deploy to production, so all client, server and database will run in the same container
 > for development, you can run the client and server separately
 
 ```bash
 docker-compose up --build --remove-orphans
-````
+```
 
 - this will run the server on port 8000 and frontend on port 8081
 
@@ -79,7 +78,7 @@ surfwatch-client  |  LOG  [web] Logs will appear in the browser console
 
 # Routes
 
-> ![note]
+> [!note]
 > backend error is in datatype `AxiosError`, here is what you need to do to convert and use it:
 >
 > ```typescript

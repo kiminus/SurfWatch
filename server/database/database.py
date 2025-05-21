@@ -1,6 +1,7 @@
 import os
 from typing import AsyncGenerator
 from dotenv import load_dotenv
+from fastapi import File
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
