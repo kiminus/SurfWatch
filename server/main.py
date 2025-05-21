@@ -169,12 +169,13 @@ from fastapi.responses import StreamingResponse
 import io
 import pathlib
 import uuid
-
+from controllers import site_controller
 
 @app.put("/cam")
 async def upload_image_and_data(
     data: RawCrowdnessReading = Body(...), 
-    image: UploadFile = File(...)
+    image: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Receives an image and JSON data matching RawCrowdnessReading.
@@ -185,10 +186,19 @@ async def upload_image_and_data(
     latest_image_store["media_type"] = image.content_type
     latest_image_store["metadata"] = data.model_dump()
     
-    return {
-        "message": f"Image '{image.filename}' and data uploaded successfully.",
-        "uploaded_data": data
-    }
+    try:
+        created_db_entry = await site_controller.create_raw_crowdness_reading(db=db, reading_data=data)
+        return {
+            "message": f"Image '{image.filename}' and data uploaded successfully.",
+            "uploaded_data": created_db_entry.model_dump()
+        }
+    except HTTPException as e:
+        # Re-raise HTTPExceptions that might come from the controller (e.g., validation, DB error)
+        raise e
+    except Exception as e:
+        # Catch any other unexpected errors during the database operation
+        # You might want more specific error handling or logging here
+        raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
 
 
 @app.get("/get_image")

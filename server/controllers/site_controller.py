@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.site import Site as PydanticSite
 from database.models.site import Site
 from sqlalchemy.orm import selectinload
-
+from database.models.site import RawCrowdnessReading as SQLAlchemyRawCrowdnessReading
+from models.site import RawCrowdnessReading as PydanticRawCrowdnessReading
 
 async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
     """
@@ -30,3 +31,23 @@ async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
         # assert site.site_banner_url, f"Site ID {site.site_id} has no banner URL"
         
     return [PydanticSite.model_validate(site) for site in sites]
+
+async def create_raw_crowdness_reading(db: AsyncSession, reading_data: PydanticRawCrowdnessReading) -> PydanticRawCrowdnessReading:
+    """
+    Create raw crowdedness data reading  in the database
+    """
+    db_reading = SQLAlchemyRawCrowdnessReading(
+        time=reading_data.time,
+        site_id=reading_data.site_id,
+        crowdness=reading_data.crowdness
+    )
+    
+    db.add(db_reading)
+    
+    try:
+        await db.commit()
+        await db.refresh(db_reading)
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to write crowdness reading to database: {str(e)}")
+    return PydanticRawCrowdnessReading.model_validate(db_reading)
