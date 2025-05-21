@@ -181,7 +181,7 @@ async def upload_image_and_data(
     Stores the latest image and its metadata in memory.
     """
     try:
-        data = RawCrowdnessReading.model_validate_json(data_json)
+        data = RawCrowdnessReading.model_validate(data_json)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=json.loads(e.json()))
 
