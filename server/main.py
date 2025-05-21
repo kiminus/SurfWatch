@@ -167,20 +167,24 @@ from database.models.site import RawCrowdnessReading
 from fastapi import Body
 from fastapi.responses import StreamingResponse
 import io
-import pathlib
-import uuid
+import json
 from controllers import site_controller
-
+from pydantic import ValidationError 
 @app.put("/cam")
 async def upload_image_and_data(
-    data: RawCrowdnessReading = Body(...), 
     image: UploadFile = File(...),
+    data_json: str = Form(..., alias="data"), 
     db: AsyncSession = Depends(get_db)
 ):
     """
     Receives an image and JSON data matching RawCrowdnessReading.
     Stores the latest image and its metadata in memory.
     """
+    try:
+        data = RawCrowdnessReading.model_validate_json(data_json)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=json.loads(e.json()))
+
     contents = await image.read()
     latest_image_store["image_bytes"] = contents
     latest_image_store["media_type"] = image.content_type
@@ -193,11 +197,9 @@ async def upload_image_and_data(
             "uploaded_data": created_db_entry.model_dump()
         }
     except HTTPException as e:
-        # Re-raise HTTPExceptions that might come from the controller (e.g., validation, DB error)
         raise e
     except Exception as e:
-        # Catch any other unexpected errors during the database operation
-        # You might want more specific error handling or logging here
+
         raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
 
 
