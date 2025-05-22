@@ -1,12 +1,11 @@
 import requests
 import json
 from datetime import datetime, timezone
-SERVER_IP = "0.0.0.0" 
+SERVER_IP = "localhost" 
 SERVER_PORT = 8000
 ENDPOINT_URL = f"http://{SERVER_IP}:{SERVER_PORT}/cam"
 
-IMAGE_PATH = "C:\\Users\\user\\Documents\\dev\\SurfWatch\\AI\\train\\Surfer-Spotting-2\\test\\images\\VenicePierSouthside_2021_03_30_1103am_frame_14_right_jpg.rf.da28fd2634165f5c1f9c68bf104c0833.jpg"
-IMAGE_FILENAME = "test_image.jpg"
+IMAGE_PATH = r"D:\Coding\ECE140\SurfWatch\IOT\captures\test.jpg"
 CROWDEDNESS = 100
 
 def create_payload_data(crowdedness: int):

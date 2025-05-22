@@ -163,7 +163,6 @@ async def get_recommendations(request: Request, db: AsyncSession = Depends(get_d
     return await site_controller.get_all_sites(db)
 
 
-from database.models.site import RawCrowdnessReading
 from fastapi import Body
 from fastapi.responses import StreamingResponse
 import io
@@ -181,7 +180,8 @@ async def upload_image_and_data(
     Stores the latest image and its metadata in memory.
     """
     try:
-        data = RawCrowdnessReading.model_validate(data_json)
+        parse_data = json.loads(data_json)
+        data = RawCrowdnessReading.model_validate(parse_data)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=json.loads(e.json()))
 
