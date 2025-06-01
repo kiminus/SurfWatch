@@ -26,8 +26,30 @@ export default function MapScreen() {
       <View style={styles.mapOverlay}>
         <Text style={styles.forecastTitle}>Crowd Forecast</Text>
         <View style={styles.weatherContainer}>
-          <Ionicons name="cloud" size={18} color="#fff" />
-          <Text style={styles.weatherText}>65°</Text>
+          <div>
+            <Ionicons name="cloud" size={18} color="#fff" />
+            <Text style={styles.weatherText}>
+              {currentSite?.wave_quality?.temperature || '65°F'}
+            </Text>
+          </div>
+          <div>
+            <Ionicons name="arrow-up" size={18} color="#fff" />
+            <Text style={styles.weatherText}>
+              {currentSite?.wave_quality?.wave_height || '2 ft'}
+            </Text>
+          </div>
+          <div>
+            <Ionicons name="timer" size={18} color="#fff" />
+            <Text style={styles.weatherText}>
+              {currentSite?.wave_quality?.wave_speed || '2km/h'}
+            </Text>
+          </div>
+          <div>
+            <Ionicons name="flag" size={18} color="#fff" />
+            <Text style={styles.weatherText}>
+              {currentSite?.wave_quality?.wave_direction || 'south'}
+            </Text>
+          </div>
         </View>
       </View>
 
@@ -65,7 +87,7 @@ const styles = StyleSheet.create({
   mapOverlay: {
     position: 'absolute',
     top: 16,
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
     width: '100%',
     paddingHorizontal: 16,
@@ -82,6 +104,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
+    gap: 8,
+    alignSelf: 'flex-end',
+    marginTop: 8,
   },
   weatherText: {
     color: 'white',

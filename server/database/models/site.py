@@ -79,3 +79,14 @@ class RawCrowdnessReading(Base):
     time: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
     site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False)
     crowdness: Mapped[int] = mapped_column(Integer, nullable=False)
+
+class WaveQualityReading(Base):
+    """SQLAlchemy WaveQualityReading model corresponding to the database table."""
+    __tablename__ = "wave_quality_readings"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    time: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False)
+    wave_height: Mapped[float] = mapped_column(Integer, nullable=False)
+    wave_speed: Mapped[float] = mapped_column(Integer, nullable=False)
+    wave_direction: Mapped[float] = mapped_column(String, nullable=False)

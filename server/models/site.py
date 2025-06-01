@@ -75,3 +75,7 @@ class RawCrowdnessReading(BaseModel):
     time: datetime
     site_id: int
     crowdness: int
+    wave_height: float
+    wave_speed: float
+    wave_direction: str
+    temperature: int

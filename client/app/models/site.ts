@@ -50,6 +50,13 @@ export interface WeeklyCrowdnessPrediction {
   // The 'sites' relationship back to Site is represented by this record being nested
   // or linked within a Site object in TypeScript, typically via 'weekly_prediction'.
 }
+export interface WaveQuality {
+  site_id: number;
+  wave_height: number;
+  wave_speed: number;
+  wave_direction: string;
+  temperature: number;
+}
 
 /**
  * Interface representing a tourism site or location.
@@ -66,4 +73,5 @@ export interface Site {
   weekly_prediction?: WeeklyCrowdnessPrediction | null; // Relationship: one-to-one or null
   // raw_crowdness_readings could be an array here if you were to define that relationship
   // on the Site model in SQLAlchemy (e.g., readings: Mapped[list["RawCrowdnessReading"]])
+  wave_quality?: WaveQuality | null;
 }
