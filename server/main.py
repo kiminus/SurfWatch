@@ -169,6 +169,20 @@ import io
 import json
 from controllers import site_controller
 from pydantic import ValidationError 
+
+@app.put("/cam/wave")
+async def update_wave_quality(
+    wave_quality: str = Body(..., embed=True), 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Updates the wave quality reading for a site.
+    This is a placeholder function and should be implemented.
+    """
+    # For now, just return the received wave quality
+    # In a real implementation, you would save this to the database
+    return {"wave_quality": wave_quality, "status": "updated successfully"}
+
 @app.put("/cam")
 async def upload_image_and_data(
     image: UploadFile = File(...),
@@ -203,6 +217,7 @@ async def upload_image_and_data(
         raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
 
 
+
 @app.get("/get_image")
 async def get_latest_image():
     """
@@ -215,3 +230,16 @@ async def get_latest_image():
     media_type = latest_image_store["media_type"]
 
     return StreamingResponse(io.BytesIO(image_bytes), media_type=media_type)
+
+@app.get("/weather")
+async def get_weather_data():
+    """
+    Placeholder endpoint for weather data.
+    This should be implemented to fetch real weather data.
+    """
+    # For now, return a dummy response
+    return {
+        "temperature": 22.5,
+        "humidity": 60,
+        "condition": "Sunny"
+    }

@@ -14,7 +14,8 @@ async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
     """
     result = await db.execute(select(Site).options(
         selectinload(Site.daily_prediction),
-        selectinload(Site.weekly_prediction)
+        selectinload(Site.weekly_prediction),
+        selectinload(Site.wave_quality)
     ))
     sites = result.scalars().all()
     

@@ -48,6 +48,17 @@ class WeeklyCrowdnessPrediction(BaseModel):
     Friday: int = 0
     Saturday: int = 0
     Sunday: int = 0
+    
+class WaveQualityReading(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True
+    )
+    site_id: int
+    wave_height: float
+    wave_speed: float
+    wave_direction: str
+    temperature: int
 
 class Site(BaseModel):
     model_config = ConfigDict(
@@ -64,6 +75,7 @@ class Site(BaseModel):
 
     daily_prediction: Optional[DailyCrowdnessPrediction] = None
     weekly_prediction: Optional[WeeklyCrowdnessPrediction] = None
+    wave_quality: Optional[WaveQualityReading] = None
 
 class RawCrowdnessReading(BaseModel):
     model_config = ConfigDict(
@@ -75,7 +87,3 @@ class RawCrowdnessReading(BaseModel):
     time: datetime
     site_id: int
     crowdness: int
-    wave_height: float
-    wave_speed: float
-    wave_direction: str
-    temperature: int

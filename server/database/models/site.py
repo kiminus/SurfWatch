@@ -18,6 +18,7 @@ class Site(Base):
 
     daily_prediction = relationship("DailyCrowdnessPrediction", uselist=False, back_populates="sites", primaryjoin="Site.site_id==DailyCrowdnessPrediction.site_id")
     weekly_prediction = relationship("WeeklyCrowdnessPrediction", uselist=False, back_populates="sites", primaryjoin="Site.site_id==WeeklyCrowdnessPrediction.site_id")
+    wave_quality = relationship("WaveQualityReading", uselist = False, back_populates="sites", primaryjoin="Site.site_id==WaveQualityReading.site_id")
     def __repr__(self):
         return f"<Site(site_id={self.site_id}, name='{self.name}')>"
     
@@ -84,9 +85,10 @@ class WaveQualityReading(Base):
     """SQLAlchemy WaveQualityReading model corresponding to the database table."""
     __tablename__ = "wave_quality_readings"
     
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    time: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False, primary_key=True)
     wave_height: Mapped[float] = mapped_column(Integer, nullable=False)
     wave_speed: Mapped[float] = mapped_column(Integer, nullable=False)
-    wave_direction: Mapped[float] = mapped_column(String, nullable=False)
+    wave_direction: Mapped[str] = mapped_column(String(30), nullable=False)
+    temperature: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    sites = relationship("Site", back_populates="wave_quality")
