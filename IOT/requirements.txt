@@ -1,0 +1,9 @@
+requests
+opencv-python
+opencv-contrib-python
+opencv
+numpy
+pandas
+ultralytics
+torch
+torchvision
