@@ -2,10 +2,10 @@ from typing import List
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.site import Site as PydanticSite
+from models.site import Site as PydanticSite, WaveQualityReading as PydanticWaveQualityReading
 from database.models.site import Site
 from sqlalchemy.orm import selectinload
-from database.models.site import RawCrowdnessReading as SQLAlchemyRawCrowdnessReading
+from database.models.site import RawCrowdnessReading as SQLAlchemyRawCrowdnessReading, WaveQualityReading as SQLAlchemyWaveQualityReading
 from models.site import RawCrowdnessReading as PydanticRawCrowdnessReading
 
 async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
@@ -32,6 +32,32 @@ async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
         # assert site.site_banner_url, f"Site ID {site.site_id} has no banner URL"
         
     return [PydanticSite.model_validate(site) for site in sites]
+
+async def update_wave_quality_reading(db: AsyncSession, reading_data: PydanticWaveQualityReading) -> PydanticWaveQualityReading:
+    """
+    Update wave quality reading in the database.
+    If the site_id does not exist, create that entry.
+    """
+    db_reading = await db.execute(select(SQLAlchemyWaveQualityReading).where(SQLAlchemyWaveQualityReading.site_id == reading_data.site_id))
+    db_reading = db_reading.scalar_one_or_none()
+    
+    if db_reading is None:
+        db_reading = SQLAlchemyWaveQualityReading(site_id=reading_data.site_id)
+        db.add(db_reading)
+    
+    db_reading.wave_height = reading_data.wave_height
+    db_reading.wave_speed = reading_data.wave_speed
+    db_reading.wave_direction = reading_data.wave_direction
+    db_reading.temperature = reading_data.temperature
+    
+    try:
+        await db.commit()
+        await db.refresh(db_reading)
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to write wave quality reading to database: {str(e)}")
+    
+    return PydanticWaveQualityReading.model_validate(db_reading)
 
 async def create_raw_crowdness_reading(db: AsyncSession, reading_data: PydanticRawCrowdnessReading) -> PydanticRawCrowdnessReading:
     """

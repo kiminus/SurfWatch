@@ -5,7 +5,7 @@ from models.user import UserAuth, UserRegister, UserLogin, UserProfile
 import controllers.auth_controller as auth
 import controllers.site_controller as site_controller
 
-from models.site import Site, RawCrowdnessReading
+from models.site import Site, RawCrowdnessReading, WaveQualityReading
 from utils import logger
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -172,16 +172,14 @@ from pydantic import ValidationError
 
 @app.put("/cam/wave")
 async def update_wave_quality(
-    wave_quality: str = Body(..., embed=True), 
+    wave_quality: WaveQualityReading = Body(..., description="Wave quality reading in JSON format"),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Updates the wave quality reading for a site.
     This is a placeholder function and should be implemented.
     """
-    # For now, just return the received wave quality
-    # In a real implementation, you would save this to the database
-    return {"wave_quality": wave_quality, "status": "updated successfully"}
+    return await site_controller.update_wave_quality_reading(db, wave_quality)
 
 @app.put("/cam")
 async def upload_image_and_data(
