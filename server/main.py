@@ -240,7 +240,7 @@ async def upload_image_and_data(
                 site_id = 1,
                 crowdness=surf_num,
             )
-        print(data.time, type(data.time))
+
         try:
             created_db_entry = await site_controller.create_raw_crowdness_reading(db=db, reading_data=data)
         except Exception as e:
@@ -252,7 +252,7 @@ async def upload_image_and_data(
             content={
                 "message": "Files received successfully",
                 "uploaded_files_details": received_files_info,
-                "uploaded_data": surf_num
+                "uploaded_data": created_db_entry.model_dump(mode='json')
             },
         )
 
