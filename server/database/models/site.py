@@ -3,7 +3,7 @@ from database.models.user import Base
 from sqlalchemy import DateTime, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.orm import relationship
-
+from datetime import datetime
 
 class Site(Base):
     """SQLAlchemy Site model corresponding to the database table."""
@@ -77,7 +77,7 @@ class RawCrowdnessReading(Base):
     __tablename__ = "raw_crowdness_readings"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    time: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
+    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.site_id"), nullable=False)
     crowdness: Mapped[int] = mapped_column(Integer, nullable=False)
 

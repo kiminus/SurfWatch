@@ -53,7 +53,10 @@ active_sessions: Dict[str, int] = {}
 # Adjust origins as needed for production
 origins = [
     "http://localhost",
+    
     "http://localhost:8081", # Expo web default
+    "https://agrishakov.com",
+    "https://www.agrishakov.com",
     # TODO: REMEMBER TO ADD YOUR PRODUCTION URL HERE
 ]
 
@@ -164,12 +167,14 @@ async def get_recommendations(request: Request, db: AsyncSession = Depends(get_d
 
 
 from fastapi import Body
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import io
 import json
+import shutil
 from controllers import site_controller
+from ai.surf import calculate_surfers
 from pydantic import ValidationError 
-
+from datetime import datetime
 @app.put("/cam/wave")
 async def update_wave_quality(
     wave_quality: WaveQualityReading = Body(..., description="Wave quality reading in JSON format"),
@@ -184,35 +189,87 @@ async def update_wave_quality(
 @app.put("/cam")
 async def upload_image_and_data(
     image: UploadFile = File(...),
-    data_json: str = Form(..., alias="data"), 
+    video: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Receives an image and JSON data matching RawCrowdnessReading.
     Stores the latest image and its metadata in memory.
     """
-    try:
-        parse_data = json.loads(data_json)
-        data = RawCrowdnessReading.model_validate(parse_data)
-    except ValidationError as e:
-        raise HTTPException(status_code=422, detail=json.loads(e.json()))
+    UPLOAD_DIRECTORY = "uploaded_files"
+    os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
+    received_files_info = {}
+    image_filename_on_server = ""
+    video_filename_on_server = ""
 
-    contents = await image.read()
-    latest_image_store["image_bytes"] = contents
-    latest_image_store["media_type"] = image.content_type
-    latest_image_store["metadata"] = data.model_dump()
-    
     try:
-        created_db_entry = await site_controller.create_raw_crowdness_reading(db=db, reading_data=data)
-        return {
-            "message": f"Image '{image.filename}' and data uploaded successfully.",
-            "uploaded_data": created_db_entry.model_dump()
+        # Image process
+        if not image.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Invalid image format for 'image' part.")
+
+        image_filename_on_server = os.path.join(UPLOAD_DIRECTORY, image.filename)
+        with open(image_filename_on_server, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        contents = await image.read()
+        latest_image_store["image_bytes"] = contents
+        latest_image_store["media_type"] = image.content_type
+        received_files_info["image"] = {
+            "filename": image.filename,
+            "content_type": image.content_type,
+            "saved_path": image_filename_on_server
         }
+        print(f"Received and saved image: {image_filename_on_server}")
+        # Video process
+        if not video.content_type.startswith("video/"):
+            raise HTTPException(status_code=400, detail="Invalid video format for 'video' part.")
+        
+        video_filename_on_server = os.path.join(UPLOAD_DIRECTORY, video.filename)
+        with open(video_filename_on_server, "wb") as buffer:
+            shutil.copyfileobj(video.file, buffer)
+        received_files_info["video"] = {
+            "filename": video.filename,
+            "content_type": video.content_type,
+            "saved_path": video_filename_on_server
+        }
+        print(f"Received and saved video: {video_filename_on_server}")
+
+        surf_num = calculate_surfers(image_filename_on_server)
+        time = datetime.now()
+        data = RawCrowdnessReading(
+                time = time,
+                site_id = 1,
+                crowdness=surf_num,
+            )
+        print(data.time, type(data.time))
+        try:
+            created_db_entry = await site_controller.create_raw_crowdness_reading(db=db, reading_data=data)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
+
+        #error handling + response
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Files received successfully",
+                "uploaded_files_details": received_files_info,
+                "uploaded_data": surf_num
+            },
+        )
+
     except HTTPException as e:
         raise e
     except Exception as e:
-
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
+        print(f"Error processing upload: {e}")
+        if os.path.exists(image_filename_on_server):
+            os.remove(image_filename_on_server)
+        if os.path.exists(video_filename_on_server):
+            os.remove(video_filename_on_server)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    finally:
+        if image and not image.file.closed:
+            image.file.close()
+        if video and not video.file.closed:
+            video.file.close()
 
 
 

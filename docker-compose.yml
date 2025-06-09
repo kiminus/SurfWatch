@@ -87,7 +87,6 @@ networks:
   surfwatch-net:
     driver: bridge # Default network driver
 
-# Define volumes (if needed, e.g., for a database)
 volumes:
   db_data:
     driver: local

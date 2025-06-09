@@ -1,0 +1,92 @@
+# ./docker-compose.yml
+version: '3.8' 
+
+services:
+  # Database Service
+  # db:
+  #   image: mysql:8.0
+  #   container_name: surfwatch-db
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rad123709a&*ahsdh
+  #     MYSQL_DATABASE: surfwatch
+  #     MYSQL_USER: surfwatch-server
+  #     MYSQL_PASSWORD: surf143
+  #   ports:
+  #     - "3307:3306" # Map host port 3306 to container port 3306
+  #   volumes:
+  #     - db_data:/var/lib/mysql # Persist database data
+  #   networks:
+  #     - surfwatch-net
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Service for the Python backend server
+  server:
+    build:
+      context: ./ # Path to the server directory
+      dockerfile: Dockerfile.server # Specify the Dockerfile name
+    container_name: surfwatch-server
+    # Load environment variables from .env file in the server directory
+    env_file:
+      - ./.env
+    ports:
+      # Map host port 8000 to container port 8000
+      # Adjust container port (right side) if your server uses a different port
+      - "8000:8000"
+    volumes:
+      # Mount the server code directory into the container for development
+      # Changes in your local code will reflect inside the container
+      - ./:/app/server
+    # Add depends_on if the server needs a database or other service
+    # depends_on:
+    #   - db
+    networks:
+      - surfwatch-net
+    restart: unless-stopped # Restart policy
+
+  # Service for the Expo frontend client
+  # Uncomment this part to put everything in one docker-compose file
+  # client:
+  #   build:
+  #     context: ./client # Path to the client directory
+  #     dockerfile: Dockerfile.client # Specify the Dockerfile name
+  #   container_name: surfwatch-client
+  #   ports:
+  #     # Map host ports to container ports exposed in Dockerfile.client
+  #     # Metro Bundler
+  #     - "8081:8081"
+  #     # Expo Dev Tools
+  #     - "19000:19000"
+  #     # Expo Inspector (React Native DevTools)
+  #     - "19001:19001"
+  #     # Expo Inspector Proxy (WebSockets)
+  #     - "19002:19002"
+  #     # Expo Dev Server
+  #     - "19006:19006"
+  #   volumes:
+  #     # Mount the client code directory into the container
+  #     - ./client:/app/client
+  #     # Prevent node_modules from being overwritten by the host mount
+  #     # This keeps the container's node_modules separate
+  #     - /app/client/node_modules
+  #   # Ensure the server starts before the client (optional, depends on app logic)
+  #   depends_on:
+  #     - server
+  #   networks:
+  #     - surfwatch-net
+  #   restart: unless-stopped # Restart policy
+  #   # Required for Expo to work correctly in some environments
+  #   stdin_open: true
+  #   tty: true
+
+# Define the network
+networks:
+  surfwatch-net:
+    driver: bridge # Default network driver
+
+volumes:
+  db_data:
+    driver: local
