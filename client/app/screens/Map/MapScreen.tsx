@@ -17,12 +17,16 @@ export default function MapScreen() {
     } else {
       console.log('No current site selected');
     }
-    ApiClient.get('/get_image').then(response => {
-      const url = URL.createObjectURL(response.data);
-      console.log('Map image URL:', url);
-      setUrl(url);
-    });
-  }, [currentSite]);
+    ApiClient.get('/get_image', {
+        responseType: 'blob' // This is the key fix!
+      }).then(response => {
+        const url = URL.createObjectURL(response.data);
+        console.log('Map image URL:', url);
+        setUrl(url);
+      }).catch(error => {
+        console.error('Error fetching image:', error);
+      });
+    }, [currentSite]);
   return currentSite ? (
     <View style={styles.container}>
       <Image
