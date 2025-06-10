@@ -2,10 +2,10 @@ from typing import List
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.site import Site as PydanticSite, WaveQualityReading as PydanticWaveQualityReading
+from models.site import Site as PydanticSite, WaveQualityReading as PydanticWaveQualityReading, DailyCrowdnessPrediction as PydanticDailyCrowdnessPrediction
 from database.models.site import Site
 from sqlalchemy.orm import selectinload
-from database.models.site import RawCrowdnessReading as SQLAlchemyRawCrowdnessReading, WaveQualityReading as SQLAlchemyWaveQualityReading
+from database.models.site import RawCrowdnessReading as SQLAlchemyRawCrowdnessReading, WaveQualityReading as SQLAlchemyWaveQualityReading, DailyCrowdnessPrediction as SQLAlchemyDailyCrowdnessPrediction
 from models.site import RawCrowdnessReading as PydanticRawCrowdnessReading
 
 async def get_all_sites(db: AsyncSession) -> List[PydanticSite]:
@@ -78,3 +78,28 @@ async def create_raw_crowdness_reading(db: AsyncSession, reading_data: PydanticR
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to write crowdness reading to database: {str(e)}")
     return PydanticRawCrowdnessReading.model_validate(db_reading)
+
+
+async def update_hourly_crowdness_prediction(db: AsyncSession, site_id: int, hour: int, crowdness:int) ->  PydanticDailyCrowdnessPrediction:
+    """
+    Update the hourly crowdness prediction for a site.
+    """
+    hourly_col = f"h{hour}"
+    db_site = await db.execute(select(SQLAlchemyDailyCrowdnessPrediction).where(SQLAlchemyDailyCrowdnessPrediction.site_id == site_id))
+    db_site = db_site.scalar_one_or_none()
+    
+    if not db_site:
+        raise HTTPException(status_code=404, detail=f"Site with ID {site_id} not found.")
+    
+    if not hasattr(db_site, hourly_col):
+        raise HTTPException(status_code=400, detail=f"Invalid hour {hour}. Must be between 0 and 23.")
+    setattr(db_site, hourly_col, crowdness)
+    
+    try:
+        await db.commit()
+        await db.refresh(db_site)
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update hourly crowdness prediction: {str(e)}")
+    
+    return PydanticSite.model_validate(db_site)

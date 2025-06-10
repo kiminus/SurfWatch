@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
 const ApiClient = axios.create({
-  baseURL: 'https://agrishakov.com',
+  baseURL: 'http://0.0.0.0:8001',
   withCredentials: true, // essential for sending session cookies
   timeout: 10000,
 });
