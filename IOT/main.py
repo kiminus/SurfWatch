@@ -12,5 +12,5 @@ image_path = "test1.jpg"
 send_data(
     image_path=image_path,
     video_path=video_path,
-    server_addr="127.0.0.1"
+    server_addr="agrishakov.com"
 )

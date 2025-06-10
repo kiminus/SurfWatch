@@ -1,5 +1,5 @@
-# ./docker-compose.yml
-version: '3.8' 
+# ./server/docker-compose.yml
+version: "3.8"
 
 services:
   # Database Service
@@ -35,7 +35,7 @@ services:
     ports:
       # Map host port 8000 to container port 8000
       # Adjust container port (right side) if your server uses a different port
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       # Mount the server code directory into the container for development
       # Changes in your local code will reflect inside the container

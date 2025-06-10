@@ -26,7 +26,7 @@ import os
 logger = logger.create_logger("Server Main")
 
 latest_image_store = {
-    "image_bytes": None,
+    "filename": None,
     "media_type": None,
     "metadata": None  # latest RawCrowdnessReading stored
 }
@@ -207,11 +207,12 @@ async def upload_image_and_data(
         if not image.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="Invalid image format for 'image' part.")
 
+        contents = await image.read()
+        # Save to file
         image_filename_on_server = os.path.join(UPLOAD_DIRECTORY, image.filename)
         with open(image_filename_on_server, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-        contents = await image.read()
-        latest_image_store["image_bytes"] = contents
+            buffer.write(contents)
+        latest_image_store["filename"] = image_filename_on_server
         latest_image_store["media_type"] = image.content_type
         received_files_info["image"] = {
             "filename": image.filename,
@@ -247,6 +248,7 @@ async def upload_image_and_data(
             raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
 
         #error handling + response
+        latest_image_store["metadata"] = created_db_entry.model_dump(mode='json')
         return JSONResponse(
             status_code=200,
             content={
@@ -281,7 +283,8 @@ async def get_latest_image():
     if latest_image_store["image_bytes"] is None:
         raise HTTPException(status_code=404, detail="No image available.")
 
-    image_bytes = latest_image_store["image_bytes"]
+    with open(latest_image_store["filename"], "rb") as image_file:
+        image_bytes = image_file.read()
     media_type = latest_image_store["media_type"]
 
     return StreamingResponse(io.BytesIO(image_bytes), media_type=media_type)

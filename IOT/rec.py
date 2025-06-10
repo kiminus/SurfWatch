@@ -2,16 +2,13 @@ import requests
 import json
 import os
 
-# SERVER_IP = "127.0.0.1"  
-# SERVER_PORT = "8000" # e.g., 8000
 def send_data(
         image_path,
         video_path,
-        server_addr = "127.0.0.1",
-        server_port = "8000",
+        server_addr = "agrishakov.com",
 ):
 
-    ENDPOINT_URL = f"http://{server_addr}:{server_port}/cam"
+    ENDPOINT_URL = f"https://{server_addr}/cam" 
 
     try:
         with open(image_path, 'rb') as image_file, \
