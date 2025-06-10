@@ -9,7 +9,7 @@ from models.site import Site, RawCrowdnessReading, WaveQualityReading
 from utils import logger
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import ( # Consolidated FastAPI imports
+from fastapi import (  # Consolidated FastAPI imports
     Depends,
     FastAPI,
     HTTPException,
@@ -28,8 +28,9 @@ logger = logger.create_logger("Server Main")
 latest_image_store = {
     "filename": None,
     "media_type": None,
-    "metadata": None  # latest RawCrowdnessReading stored
+    "metadata": None,  # latest RawCrowdnessReading stored
 }
+
 
 @asynccontextmanager
 async def app_init(app: FastAPI):
@@ -42,6 +43,7 @@ async def app_init(app: FastAPI):
     # Code to run on shutdown (optional)
     logger.info("Application shutdown.")
 
+
 app = FastAPI(lifespan=app_init)
 
 load_dotenv()
@@ -51,25 +53,42 @@ active_sessions: Dict[str, int] = {}
 
 # --- CORS Middleware ---
 # Adjust origins as needed for production
+# origins = [
+#     "http://localhost",
+#
+#     "http://localhost:8081", # Expo web default
+#     "https://agrishakov.com",
+#     "https://www.agrishakov.com",
+#     # TODO: REMEMBER TO ADD YOUR PRODUCTION URL HERE
+# ]
 origins = [
-    "http://localhost",
-    
-    "http://localhost:8081", # Expo web default
+    "http://localhost:3000",  # React dev server
+    "http://localhost:8081",  # Expo web default
     "https://agrishakov.com",
     "https://www.agrishakov.com",
-    # TODO: REMEMBER TO ADD YOUR PRODUCTION URL HERE
+    "http://localhost:19006",
+    # Add your frontend domain here
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True, # Important for cookies
-    allow_methods=["*"],
+    allow_credentials=True,  # Important for cookies
+    allow_methods=["*"],  # ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.options("/{full_path:path}")
+async def options_handler(request: Request):
+    return Response(status_code=200)
+
+
 # region Auth
-@app.get('/users/me')
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> Optional[UserProfile]:
+@app.get("/users/me")
+async def get_current_user(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> Optional[UserProfile]:
     """
     Dependency to get the current user from the request. return `None` if the user is not authenticated.
     """
@@ -85,17 +104,24 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     logger.info(f"Session ID {session_id} found, user: {user}")
     return user
 
+
 async def get_current_user_auth(request, db: AsyncSession) -> Optional[UserAuth]:
     """dependency to get the current user auth from the request. return `None` if the user is not authenticated."""
     user = await get_current_user(request, db)
     return auth.get_user_auth(user.user_id)
 
-@app.post('/auth/register')
-async def register_user(register: UserRegister, db: AsyncSession = Depends(get_db)) -> int:
-    '''register a new user. return the `user_id` on success, throw `HTTPException` error if unsuccessful.'''
+
+@app.post("/auth/register")
+async def register_user(
+    register: UserRegister, db: AsyncSession = Depends(get_db)
+) -> int:
+    """register a new user. return the `user_id` on success, throw `HTTPException` error if unsuccessful."""
     # validate the registration data against the UserRegister model
     if not register:
-        raise HTTPException(status_code=401, detail="Invalid registration data, or not conforming to the model `UserRegister`")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid registration data, or not conforming to the model `UserRegister`",
+        )
     if not register.username:
         raise HTTPException(status_code=401, detail="Missing required field: username")
     if not register.password:
@@ -103,42 +129,55 @@ async def register_user(register: UserRegister, db: AsyncSession = Depends(get_d
     if not register.email:
         raise HTTPException(status_code=401, detail="Missing required field: email")
     if not register.displayName:
-        raise HTTPException(status_code=401, detail="Missing required field: displayName")
-    
+        raise HTTPException(
+            status_code=401, detail="Missing required field: displayName"
+        )
+
     return await auth.create_user(db, register)
 
-@app.post('/auth/login')
-async def login_user(response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)) -> str:
-    '''login a user. On success, set session cookie. on failure, throw `HTTPException` error. 
-    even there is already a session cookie, it will be replaced with a new one.'''
+
+@app.post("/auth/login")
+async def login_user(
+    response: Response, login: UserLogin, db: AsyncSession = Depends(get_db)
+) -> str:
+    """login a user. On success, set session cookie. on failure, throw `HTTPException` error.
+    even there is already a session cookie, it will be replaced with a new one."""
     # get the user auth from the database
     user_auth = await auth.get_user_auth_by_username(db, login.username)
     if not user_auth:
         raise HTTPException(status_code=401, detail="Invalid username")
     if not auth.verify_password(login.password, user_auth.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid password")
-    
+
     session_id = await auth.generate_session_id()
     active_sessions[session_id] = user_auth.user_id
-    response.set_cookie(key=SESSION_COOKIE_NAME, value=session_id, httponly=True, secure=True, samesite="lax", max_age=60*60*24)  # 1 day expiration
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_id,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=60 * 60 * 24,
+    )  # 1 day expiration
     return session_id
 
-@app.post('/auth/logout')
+
+@app.post("/auth/logout")
 async def logout_user(response: Response, request: Request):
     """
     Logs out the user by removing the session from the server-side store
     and clearing the session cookie.
-    
+
     Returns a JSON response indicating success or failure.
     """
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     if not session_id or session_id not in active_sessions:
         raise HTTPException(status_code=401, detail="User not logged in")
-    
+
     # Get user info for logging before deletion
     user_id = active_sessions[session_id]
     logger.info(f"Logout request for user ID: {user_id}")
-    
+
     # Delete session
     del active_sessions[session_id]
     logger.info(f"Removed session {session_id[:8]}... from server store.")
@@ -148,18 +187,21 @@ async def logout_user(response: Response, request: Request):
         key=SESSION_COOKIE_NAME,
         value="",
         httponly=True,
-        secure=True, # Should match login settings
-        samesite="lax",
-        max_age=0 # Expire immediately
+        secure=True,  # Should match login settings
+        samesite="none",
+        max_age=0,  # Expire immediately
     )
-    
+
     return {"status": "success", "message": "Logged out successfully"}
+
+
 # endregion
+
 
 @app.get("/sites/rec", response_model=List[Site])
 async def get_recommendations(request: Request, db: AsyncSession = Depends(get_db)):
     """
-    Get recommendations for the user. 
+    Get recommendations for the user.
     This is a placeholder function and should be implemented.
     for now, return all sites in the database
     """
@@ -173,12 +215,16 @@ import json
 import shutil
 from controllers import site_controller
 from ai.surf import calculate_surfers
-from pydantic import ValidationError 
+from pydantic import ValidationError
 from datetime import datetime
+
+
 @app.put("/cam/wave")
 async def update_wave_quality(
-    wave_quality: WaveQualityReading = Body(..., description="Wave quality reading in JSON format"),
-    db: AsyncSession = Depends(get_db)
+    wave_quality: WaveQualityReading = Body(
+        ..., description="Wave quality reading in JSON format"
+    ),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Updates the wave quality reading for a site.
@@ -186,11 +232,12 @@ async def update_wave_quality(
     """
     return await site_controller.update_wave_quality_reading(db, wave_quality)
 
+
 @app.put("/cam")
 async def upload_image_and_data(
     image: UploadFile = File(...),
     video: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Receives an image and JSON data matching RawCrowdnessReading.
@@ -205,7 +252,9 @@ async def upload_image_and_data(
     try:
         # Image process
         if not image.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="Invalid image format for 'image' part.")
+            raise HTTPException(
+                status_code=400, detail="Invalid image format for 'image' part."
+            )
 
         contents = await image.read()
         # Save to file
@@ -217,44 +266,51 @@ async def upload_image_and_data(
         received_files_info["image"] = {
             "filename": image.filename,
             "content_type": image.content_type,
-            "saved_path": image_filename_on_server
+            "saved_path": image_filename_on_server,
         }
         print(f"Received and saved image: {image_filename_on_server}")
         # Video process
         if not video.content_type.startswith("video/"):
-            raise HTTPException(status_code=400, detail="Invalid video format for 'video' part.")
-        
+            raise HTTPException(
+                status_code=400, detail="Invalid video format for 'video' part."
+            )
+
         video_filename_on_server = os.path.join(UPLOAD_DIRECTORY, video.filename)
         with open(video_filename_on_server, "wb") as buffer:
             shutil.copyfileobj(video.file, buffer)
         received_files_info["video"] = {
             "filename": video.filename,
             "content_type": video.content_type,
-            "saved_path": video_filename_on_server
+            "saved_path": video_filename_on_server,
         }
         print(f"Received and saved video: {video_filename_on_server}")
 
         surf_num = calculate_surfers(image_filename_on_server)
         time = datetime.now()
         data = RawCrowdnessReading(
-                time = time,
-                site_id = 1,
-                crowdness=surf_num,
-            )
+            time=time,
+            site_id=1,
+            crowdness=surf_num,
+        )
 
         try:
-            created_db_entry = await site_controller.create_raw_crowdness_reading(db=db, reading_data=data)
+            created_db_entry = await site_controller.create_raw_crowdness_reading(
+                db=db, reading_data=data
+            )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while processing your request: {str(e)}",
+            )
 
-        #error handling + response
-        latest_image_store["metadata"] = created_db_entry.model_dump(mode='json')
+        # error handling + response
+        latest_image_store["metadata"] = created_db_entry.model_dump(mode="json")
         return JSONResponse(
             status_code=200,
             content={
                 "message": "Files received successfully",
                 "uploaded_files_details": received_files_info,
-                "uploaded_data": created_db_entry.model_dump(mode='json')
+                "uploaded_data": created_db_entry.model_dump(mode="json"),
             },
         )
 
@@ -274,7 +330,6 @@ async def upload_image_and_data(
             video.file.close()
 
 
-
 @app.get("/get_image")
 async def get_latest_image():
     """
@@ -289,6 +344,7 @@ async def get_latest_image():
 
     return StreamingResponse(io.BytesIO(image_bytes), media_type=media_type)
 
+
 @app.get("/weather")
 async def get_weather_data():
     """
@@ -296,8 +352,4 @@ async def get_weather_data():
     This should be implemented to fetch real weather data.
     """
     # For now, return a dummy response
-    return {
-        "temperature": 22.5,
-        "humidity": 60,
-        "condition": "Sunny"
-    }
+    return {"temperature": 22.5, "humidity": 60, "condition": "Sunny"}
