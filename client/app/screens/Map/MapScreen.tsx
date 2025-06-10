@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import CrowdChart from './CrowdChart';
 import colors from '../../utils/colors';
 import { AppContext } from '@/app/contexts/AppContext';
+import ApiClient from '@/app/services/ApiClient';
 
 export default function MapScreen() {
   const { currentSite } = useContext(AppContext);
+  const [url, setUrl] = React.useState('');
   useEffect(() => {
     // Fetch map data or perform any necessary setup here
     if (currentSite) {
@@ -15,11 +17,16 @@ export default function MapScreen() {
     } else {
       console.log('No current site selected');
     }
+    ApiClient.get('/get_image').then(response => {
+      const url = URL.createObjectURL(response.data);
+      console.log('Map image URL:', url);
+      setUrl(url);
+    });
   }, [currentSite]);
   return currentSite ? (
     <View style={styles.container}>
       <Image
-        source={{ uri: currentSite.site_banner_url || '' }}
+        source={{ uri: url || '' }}
         style={styles.mapImage}
       />
 
