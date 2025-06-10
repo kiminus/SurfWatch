@@ -297,7 +297,7 @@ async def upload_image_and_data(
             created_db_entry = await site_controller.create_raw_crowdness_reading(
                 db=db, reading_data=data
             )
-            site_controller.update_hourly_crowdness_prediction(db, data.site_id, time.hour, surf_num)
+            await site_controller.update_hourly_crowdness_prediction(db, data.site_id, time.hour, surf_num)
             
         except Exception as e:
             raise HTTPException(

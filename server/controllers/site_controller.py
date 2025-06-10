@@ -84,7 +84,8 @@ async def update_hourly_crowdness_prediction(db: AsyncSession, site_id: int, hou
     """
     Update the hourly crowdness prediction for a site.
     """
-    hourly_col = f"h{hour}"
+    hourly_col = f"h{hour-7}"
+    print(f"Updating hourly crowdness prediction for site {site_id} at hour {hourly_col} with crowdness {crowdness}")
     db_site = await db.execute(select(SQLAlchemyDailyCrowdnessPrediction).where(SQLAlchemyDailyCrowdnessPrediction.site_id == site_id))
     db_site = db_site.scalar_one_or_none()
     
@@ -102,4 +103,4 @@ async def update_hourly_crowdness_prediction(db: AsyncSession, site_id: int, hou
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update hourly crowdness prediction: {str(e)}")
     
-    return PydanticSite.model_validate(db_site)
+    return PydanticDailyCrowdnessPrediction.model_validate(db_site)
