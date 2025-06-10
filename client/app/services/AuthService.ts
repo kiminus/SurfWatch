@@ -14,7 +14,7 @@ export default {
    */
   async getCurrentUser(setUser: AppContextType['setUser']): Promise<UserProfile | null> {
     try {
-      const response = await ApiClient.get<UserProfile>('/users/me/');
+      const response = await ApiClient.get<UserProfile>('/users/me');
       const cuser = response.data as unknown as UserProfile;
       setUser(cuser);
       return cuser;

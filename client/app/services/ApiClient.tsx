@@ -1,8 +1,8 @@
 import axios, { AxiosError } from 'axios';
 
 const ApiClient = axios.create({
-  baseURL: 'http://localhost:8000',
-  withCredentials: true, // Essential for sending session cookies
+  baseURL: 'https://agrishakov.com',
+  withCredentials: false, // essential for sending session cookies
   timeout: 10000,
 });
 
