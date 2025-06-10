@@ -280,7 +280,7 @@ async def get_latest_image():
     """
     Returns the latest image stored in memory.
     """
-    if latest_image_store["image_bytes"] is None:
+    if latest_image_store["filename"] is None:
         raise HTTPException(status_code=404, detail="No image available.")
 
     with open(latest_image_store["filename"], "rb") as image_file:
