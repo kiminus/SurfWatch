@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 const ApiClient = axios.create({
   baseURL: 'https://agrishakov.com',
-  withCredentials: false, // essential for sending session cookies
+  withCredentials: true, // essential for sending session cookies
   timeout: 10000,
 });
 
